@@ -1,7 +1,7 @@
 {
   "latestCode": 3448,
   "latestVersion": "3.44.8",
-  "notes": "PC 3.44.8 加密加固：域名/IP 去明文、OTA GitHub 兜底、安装包 sha256 校验。",
+  "notes": "电脑版 3.44.8 加密加固：内嵌资源收窄到实际使用的三件，历史备份与草稿不再进包，站点密钥与自建 IP 不落二进制；OTA 兜底与安装包 sha256 校验不变。",
   "apkPath": "https://github.com/AnShengtok/pml-speedtest/releases/download/v3.44.8/pml-setup-x64-3.44.8-hardened.exe",
-  "sha256": "00a32a7f124bb764107a75e6af2b9f69765a603e634bdf7b09b9fe5b3f04dcc0"
+  "sha256": "1d1348ac7c2e934ff0ffe9f2495d7f93e3c5db79ca32440df3a95b7192ce4aad"
 }

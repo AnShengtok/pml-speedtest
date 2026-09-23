@@ -1,7 +1,7 @@
 {
-  "latestCode": 3447,
-  "latestVersion": "3.44.7",
-  "notes": "套壳 App 3.44.7：4tab、更新弹窗/公告、检查更新、源池与拉满优化。",
-  "apkPath": "https://github.com/AnShengtok/pml-speedtest/releases/download/v3.44.8/pml-shell-arm64-3.44.7.apk",
-  "sha256": "195d718039ff854dba1625a54e4908ab098f8bdea4783de2360dac6380ec667b"
+  "latestCode": 3448,
+  "latestVersion": "3.44.8",
+  "notes": "套壳 3.44.8 加密加固：签名release+R8、原生上报/OTA 域名去明文、多网卡枚举、开放API。",
+  "apkPath": "https://github.com/AnShengtok/pml-speedtest/releases/download/v3.44.8/pml-shell-arm64-3.44.8.apk",
+  "sha256": "ae9830d68492ac269f8e5aa3ea89fe5724fb0fa0616e68a7df5a3d329655fdd7"
 }

@@ -31,7 +31,7 @@ const (
 	secretF    = "/var/lib/pml-geo/secret"
 	geoF       = "/var/lib/pml-geo/geoip.json"
 	vendorDir  = "/srv/speedtest/vendor"
-	siteKey    = "pml-web-2026"
+	siteKey    = "pml-web-your-own-key"
 	cookieNm   = "pml_admin"
 	pubAddr    = "127.0.0.1:8085"
 	admAddr    = ":8086"

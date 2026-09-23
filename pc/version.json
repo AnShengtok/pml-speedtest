@@ -1,7 +1,7 @@
 {
   "latestCode": 3448,
   "latestVersion": "3.44.8",
-  "notes": "PC 版 3.44.8：更新兜底(GitHub)、上行拉满、榜单校准、开放API。",
-  "apkPath": "https://github.com/AnShengtok/pml-speedtest/releases/download/v3.44.8/pml-setup-x64-3.44.8.exe",
-  "sha256": "2c95cbe83a58209a79149e988c6413fef7769941c740ca1c14501b3889bfa150"
+  "notes": "PC 3.44.8 加密加固：域名/IP 去明文、OTA GitHub 兜底、安装包 sha256 校验。",
+  "apkPath": "https://github.com/AnShengtok/pml-speedtest/releases/download/v3.44.8/pml-setup-x64-3.44.8-hardened.exe",
+  "sha256": "00a32a7f124bb764107a75e6af2b9f69765a603e634bdf7b09b9fe5b3f04dcc0"
 }

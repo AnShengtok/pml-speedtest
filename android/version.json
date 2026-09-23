@@ -1,7 +1,7 @@
 {
   "latestCode": 3448,
   "latestVersion": "3.44.8",
-  "notes": "套壳 3.44.8 加密加固：签名release+R8、原生上报/OTA 域名去明文、多网卡枚举、开放API。",
+  "notes": "套壳 App 3.44.8 加密加固：内嵌资源收窄，历史备份与草稿不再进包，站点密钥与自建 IP 不落 .so；签名 release+R8、多网卡枚举、开放API 不变。",
   "apkPath": "https://github.com/AnShengtok/pml-speedtest/releases/download/v3.44.8/pml-shell-arm64-3.44.8.apk",
-  "sha256": "ae9830d68492ac269f8e5aa3ea89fe5724fb0fa0616e68a7df5a3d329655fdd7"
+  "sha256": "6a4188f81abbf030a45ff59cead793ff366fe7906d84cc08551a9bff710cf7d0"
 }

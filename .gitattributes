@@ -1,0 +1,12 @@
+# 部署时靠 md5 比对线上与本地页面，换行符必须固定，否则换台机器 checkout 就对不上。
+*.go text eol=lf
+*.html text eol=lf
+*.js text eol=lf
+*.css text eol=lf
+*.json text eol=lf
+*.py text eol=lf
+*.md text eol=lf
+*.service text eol=lf
+*.sh text eol=lf
+*.bat text eol=crlf
+*.ps1 text eol=crlf

@@ -1,0 +1,6 @@
+name = "pml-upload-target"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+# 免费档即可（10 万请求/天）。上线后把下面的自定义域或 workers.dev 地址
+# 加入 pml/web/assets/index.html 的 UL_FB 首位，并在 sources.json 的 upload 同步。

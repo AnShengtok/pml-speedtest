@@ -1,0 +1,15 @@
+{
+  "download": [
+    "https://speed.cloudflare.com/__down?bytes=104857600",
+    "https://mirrors.163.com/ubuntu-releases/22.04/ubuntu-22.04.5-desktop-amd64.iso",
+    "https://proof.ovh.net/files/100Mb.dat",
+    "http://speedtest.tele2.net/100MB.zip",
+    "https://mirrors.edge.kernel.org/pub/linux/kernel/v6.x/linux-6.6.tar.xz"
+  ],
+  "upload": [
+    "https://speed.cloudflare.com/__up",
+    "https://httpbin.org/post",
+    "https://postman-echo.com/post"
+  ],
+  "upload_note": "示例靶子：请替换为你自己可直连且允许压测的端点"
+}

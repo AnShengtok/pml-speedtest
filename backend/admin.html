@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>打流测试 · 管理后台</title>
+<script src="/vendor/echarts.min.js"></script>
+<style>
+:root{--bg:#070b16;--card:rgba(255,255,255,.045);--ink:#eef2fb;--mut:#8ea0c0;--line:rgba(255,255,255,.09);--g:#34e3a4;--b:#5aa9ff;--p:#a78bfa;--o:#f5a623;--dark:#0a1020}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;font-size:14px;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.aurora{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.6;animation:drift 20s ease-in-out infinite alternate}
+.blob.b1{width:46vw;height:46vw;left:-10vw;top:-14vw;background:radial-gradient(circle,#1fd1a0,transparent 70%)}
+.blob.b2{width:50vw;height:50vw;right:-12vw;top:-6vw;background:radial-gradient(circle,#3d7bff,transparent 70%)}
+.blob.b3{width:40vw;height:40vw;left:20vw;bottom:-18vw;background:radial-gradient(circle,#7c5cf0,transparent 72%)}
+@keyframes drift{0%{transform:translate(0,0)}100%{transform:translate(4vw,3vw)}}
+.topbar{position:sticky;top:0;z-index:20;background:rgba(7,11,22,.72);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.topbar .in{max-width:1280px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:12px;position:relative;z-index:2}
+.logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#34e3a4,#5aa9ff);display:flex;align-items:center;justify-content:center;font-size:18px}
+.brand b{font-size:15px;display:block;line-height:1.2}
+.brand span{font-size:12px;color:var(--mut)}
+.sp{margin-left:auto;display:flex;align-items:center;gap:10px}
+.muted{color:var(--mut);font-size:12px}
+.btn{padding:7px 12px;border:1px solid var(--line);border-radius:9px;background:rgba(255,255,255,.05);font-size:13px;cursor:pointer;color:var(--ink)}
+.btn:hover{border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.1)}
+.wrap{max-width:1280px;margin:0 auto;padding:18px 20px 40px;position:relative;z-index:1}
+.card{position:relative;background:var(--card);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:16px 18px;backdrop-filter:blur(14px) saturate(1.6);-webkit-backdrop-filter:blur(14px) saturate(1.6);box-shadow:0 20px 50px -30px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.14)}
+/* liquid-glass 增强 */
+.card::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(158deg,rgba(255,255,255,.10),rgba(255,255,255,0) 40%);mix-blend-mode:overlay}
+.ch{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.ci{width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;font-size:15px}
+.ch h3{margin:0;font-size:15px;font-weight:700}
+.ch p{margin:1px 0 0;font-size:12px;color:var(--mut)}
+.globe-card{background:rgba(6,10,22,.6);border-color:rgba(255,255,255,.08);color:#e7eefc;padding:0;overflow:hidden;margin-bottom:16px}
+.globe-card .gh{display:flex;align-items:center;gap:10px;padding:14px 18px}
+.globe-card .gh h3{margin:0;font-size:15px;color:#fff}
+.globe-card .gh p{margin:1px 0 0;font-size:12px;color:#8ea0c0}
+.globe-card .chip{margin-left:auto;display:flex;gap:8px;align-items:center}
+.globe-card .c{font-size:12px;color:#bcd;padding:5px 10px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:rgba(255,255,255,.05)}
+#globe{width:100%;height:440px}
+.glegend{display:flex;gap:16px;align-items:center;padding:10px 18px 16px;font-size:12px;color:#8ea0c0;flex-wrap:wrap}
+.glegend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.gscope{margin-left:auto;display:flex;gap:8px;align-items:center;white-space:nowrap}
+.gscope b{font-weight:400;font-size:12px;color:#6f83a8}
+.mtbar{margin-left:auto;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.mgrp{display:inline-flex;gap:6px;align-items:center}
+.mgrp b{font-weight:400;font-size:12px;color:#6f83a8;margin-right:2px}
+.globe-card .chip{margin-left:0}
+.live{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--g);margin-right:6px;box-shadow:0 0 0 0 rgba(52,227,164,.6);animation:pulse 1.8s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(52,227,164,.5)}70%{box-shadow:0 0 0 8px rgba(52,227,164,0)}100%{box-shadow:0 0 0 0 rgba(52,227,164,0)}}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:14px}
+.kpi .lab{font-size:12px;color:var(--mut)}
+.kpi .val{font-size:30px;font-weight:800;line-height:1.15;margin-top:4px;letter-spacing:-.5px}
+.kpi .val i{font-size:13px;font-weight:600;color:var(--mut);font-style:normal;margin-left:3px}
+.kpi .sub{font-size:12px;color:var(--mut);margin-top:6px}
+.kpi .spark{margin-top:8px;height:34px}
+.g{color:var(--g)}.b{color:var(--b)}.p{color:var(--p)}.o{color:var(--o)}
+.lb-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px}
+table{width:100%;border-collapse:collapse}
+th{font-size:12px;color:var(--mut);font-weight:600;text-align:left;padding:8px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#0b1120;z-index:1}
+td{padding:9px 8px;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px;vertical-align:middle}
+tr:last-child td{border-bottom:0}
+.scroll{max-height:320px;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:rgba(120,150,200,.30) transparent}
+.scroll::-webkit-scrollbar{width:8px;height:8px}
+.scroll::-webkit-scrollbar-track{background:transparent}
+.scroll::-webkit-scrollbar-thumb{background:rgba(120,150,200,.28);border-radius:8px;border:2px solid transparent;background-clip:padding-box}
+.scroll::-webkit-scrollbar-thumb:hover{background:rgba(140,175,225,.5);background-clip:padding-box}
+.c-rank{width:34px}.c-ip{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;white-space:nowrap}.c-ip.ipcopy{cursor:pointer;user-select:none}.c-ip.copied{color:#34e3a4}
+.med{display:inline-flex;width:22px;height:22px;border-radius:7px;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#04121f}
+.m1{background:linear-gradient(135deg,#f6c344,#e0952a)}.m2{background:linear-gradient(135deg,#c3ccd8,#9aa7b8)}.m3{background:linear-gradient(135deg,#d8a06a,#b5763f)}
+.rk{color:var(--mut);font-size:12px;padding-left:6px}
+.c-val{font-weight:700;text-align:right;white-space:nowrap}
+.c-val i{font-size:11px;color:var(--mut);font-weight:600;font-style:normal;margin-left:2px}
+.rbar{height:4px;border-radius:3px;background:rgba(255,255,255,.08);margin-top:5px;overflow:hidden}
+.rbar span{display:block;height:100%;border-radius:3px}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+.num{text-align:right;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px}
+.tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}.ipcopy{cursor:pointer;user-select:none}
+.t-download{background:rgba(52,227,164,.16);color:#34e3a4}.t-upload{background:rgba(90,169,255,.16);color:#5aa9ff}.t-bidirectional{background:rgba(167,139,250,.18);color:#a78bfa}.t-x{background:rgba(255,255,255,.08);color:#8ea0c0}
+.t-speedtest{background:rgba(52,227,164,.16);color:#34e3a4}
+.t-stream{background:rgba(246,195,68,.16);color:#f6c344}
+.empty{color:var(--mut);text-align:center;padding:18px;font-size:13px}
+.bars{padding:4px 2px 0}
+.bars-wrap{display:flex;align-items:flex-end;justify-content:center;gap:6px;height:130px}
+.bcol{flex:0 1 26px;max-width:26px;min-width:5px;display:flex;flex-direction:column;justify-content:flex-end;height:100%}
+.btrack{height:100%;display:flex;align-items:flex-end}
+.bfill{width:100%;background:linear-gradient(180deg,#a78bfa,#7c5cf0);border-radius:5px 5px 0 0;min-height:2px;transition:height .4s}
+.bcol{position:relative}
+.bcol:hover::after{content:attr(data-tip);position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:8px;background:rgba(10,16,32,.97);border:1px solid rgba(255,255,255,.16);color:#e7eefb;font-size:11.5px;font-weight:600;padding:6px 9px;border-radius:9px;white-space:nowrap;z-index:30;box-shadow:0 8px 22px rgba(0,0,0,.55);pointer-events:none}
+.baxis{display:flex;justify-content:space-between;font-size:11px;color:var(--mut);margin-top:8px}
+.foot{text-align:center;color:var(--mut);font-size:12px;margin-top:22px}
+#login{position:fixed;inset:0;z-index:50;background:rgba(4,8,18,.7);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center}
+#login .box{width:340px;max-width:90vw;padding:28px;border-radius:18px;background:#0d1424;border:1px solid rgba(255,255,255,.1);box-shadow:0 20px 60px rgba(0,0,0,.5)}
+#login h2{margin:0 0 4px;font-size:18px}#login p{margin:0 0 18px;font-size:12px;color:var(--mut)}
+#login input{width:100%;padding:11px 13px;border-radius:11px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.3);color:#fff;font-size:14px;margin-bottom:12px}
+#login button{width:100%;padding:11px;border:0;border-radius:11px;background:linear-gradient(135deg,#34e3a4,#5aa9ff);color:#04121f;font-size:15px;font-weight:700;cursor:pointer}
+#expired{position:fixed;top:0;left:0;right:0;z-index:45;display:none;align-items:center;justify-content:center;gap:8px;padding:11px 14px;background:rgba(176,58,58,.95);color:#fff;font-size:13px;box-shadow:0 3px 14px rgba(0,0,0,.45)}
+#expired b{cursor:pointer;text-decoration:underline;font-weight:700}
+.err{color:#ff6b8a;font-size:12px;min-height:16px;margin-bottom:6px}
+.hide{display:none}
+.btnlike{cursor:pointer}
+.btnlike:hover{background:rgba(255,255,255,.12)}
+.btnlike.on{background:rgba(52,227,164,.20);color:#34e3a4}
+.fip{fill:#8ea0c0;font-size:9px;font-family:ui-monospace,Consolas,monospace}
+.globe-card:fullscreen{border-radius:0}
+.globe-card:-webkit-full-screen{border-radius:0}
+.globe-card:fullscreen #globe{height:calc(100vh - 150px)}
+.globe-card:-webkit-full-screen #globe{height:calc(100vh - 150px)}
+.flatmap{position:relative;width:100%;height:440px;background:transparent;overflow:hidden;touch-action:none}
+.fm-stage{position:absolute;inset:0;background:#05070f url("/vendor/earth_nightmap.jpg") center/100% 100% no-repeat;transform-origin:50% 50%;will-change:transform}
+.grid line{stroke:rgba(120,160,220,.10);stroke-width:.5;vector-effect:non-scaling-stroke}
+.hublbl{font-weight:700;paint-order:stroke;stroke:rgba(0,0,0,.65);stroke-width:2px}
+.flatmap::after{content:"";position:absolute;inset:0;background:radial-gradient(120% 120% at 50% 40%,rgba(4,8,18,0) 40%,rgba(4,8,18,.6) 100%);pointer-events:none}
+#fsvg{position:absolute;inset:0;width:100%;height:100%;z-index:2}
+.fline{fill:none;stroke-width:1.4;opacity:.85;stroke-dasharray:3 9;vector-effect:non-scaling-stroke;animation:dashmove 2.4s linear infinite;filter:drop-shadow(0 0 2px rgba(90,169,255,.5))}
+@keyframes dashmove{to{stroke-dashoffset:-120}}
+.fdot{filter:drop-shadow(0 0 3px currentColor);animation:dotpulse 2.2s ease-in-out infinite}
+@keyframes dotpulse{0%,100%{opacity:.55}50%{opacity:1}}
+.hubpulse{fill:none;stroke:#f6c344;stroke-width:1.4;animation:hp 1.9s ease-out infinite}
+@keyframes hp{0%{r:5px;opacity:.9}100%{r:18px;opacity:0}}
+.globe-card:fullscreen .flatmap{height:calc(100vh - 150px)}
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}.lb-grid{grid-template-columns:1fr}}
+@media(max-width:560px){.grid{grid-template-columns:1fr 1fr}.kpi .val{font-size:24px}#globe{height:320px}}
+@media(max-width:640px){
+/* topbar 重排：品牌一行、控件换行 */
+.topbar .in{flex-wrap:wrap;padding:10px 12px;gap:8px 10px}
+.brand{flex:1 1 auto;min-width:0}
+.brand b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px}
+.brand span{display:none}
+.sp{margin-left:0;width:100%;flex-wrap:wrap;gap:8px;justify-content:flex-start}
+.rng{margin-right:0;flex:0 0 auto}
+.muted{order:9;font-size:11px}
+/* 防整页横向溢出 */
+.wrap{padding:12px 10px 32px;overflow-x:hidden}
+.card{padding:12px 12px}
+.ch{margin-bottom:10px}
+/* 表格：容器内横向滚动，列保持可读宽度 */
+.scroll{overflow-x:auto}
+.scroll table{min-width:600px}
+.ctbl{min-width:560px}
+.ltbl td,.ltbl th{padding:7px 8px}
+/* 地图/图表高度收紧 */
+#globe{height:280px}
+#flatchart{height:300px}
+#chinamap{height:340px}
+.mtbar{gap:8px}
+.globe-card .chip{margin-left:0;flex-wrap:wrap}
+/* 长文本换行 */
+.airow{flex-wrap:wrap}
+.airow a,.airow span{word-break:break-all}
+}
+.cli{margin-left:6px;padding:1px 5px;border-radius:5px;font-size:10px;font-weight:700;letter-spacing:.4px;vertical-align:1px;background:rgba(122,162,255,.16);color:#9dc0ff;border:1px solid rgba(122,162,255,.28)}
+.cli.pc{background:rgba(52,227,164,.14);color:#5ff0bf;border-color:rgba(52,227,164,.3)}
+.cli.app{background:rgba(255,176,64,.14);color:#ffc978;border-color:rgba(255,176,64,.3)}
+.cli.web{background:rgba(142,160,192,.16);color:#a9bcdd;border-color:rgba(142,160,192,.32)}
+.rng{display:inline-flex;gap:4px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:3px;margin-right:8px}
+.rb{font-size:12px;color:#9fb4d8;padding:5px 10px;border-radius:7px;cursor:pointer;user-select:none}
+.rb.on{background:linear-gradient(180deg,rgba(90,169,255,.28),rgba(90,169,255,.12));color:#fff}
+.val.r{color:#ff8080}
+.cbtn{cursor:pointer;font-size:12px;color:#bcd;padding:5px 12px;border:1px solid rgba(255,255,255,.14);border-radius:20px;background:rgba(20,34,60,.5)}
+.cbtn.on{background:rgba(52,227,164,.18);border-color:#34e3a4;color:#8affd6}
+.ctbl{width:100%;border-collapse:collapse;font-size:13px;color:#e7eefb}
+.ctbl th,.ctbl td{padding:8px 10px;text-align:right;border-bottom:1px solid rgba(120,150,200,.14)}
+.ctbl th:first-child,.ctbl td:first-child{text-align:left}
+.ctbl th{color:#8aa4cc;font-weight:600;position:sticky;top:0;background:#0a1220}
+.cbar{display:inline-block;height:8px;background:linear-gradient(90deg,#1a605c,#34e3a4);border-radius:4px;vertical-align:middle;margin-right:6px}
+.ctbl tr:hover td{background:rgba(52,227,164,.06)}
+.crow.lv0{font-weight:600}
+.ccare{display:inline-block;width:15px;color:#7fd6ff;cursor:pointer;text-align:left}
+.lv1 .cname{padding-left:8px;color:#cfe0f5;font-weight:400}
+.lv2 .cname{padding-left:20px;color:#9fb4d0;font-weight:400}
+.cbadge{margin-left:6px;font-size:11px;color:#6f83a8;font-weight:400}
+tr.crow.lv1:hover td,tr.crow.lv2:hover td{background:rgba(90,169,255,.06)}
+.ltbl{width:100%;border-collapse:collapse;font-size:13px;color:#e7eefb}
+.ltbl th,.ltbl td{padding:7px 10px;border-bottom:1px solid rgba(120,150,200,.12);text-align:left}
+.ltbl th{color:#8aa4cc;font-weight:600;position:sticky;top:0;background:#0a1220}
+.ltbl td.num,.ltbl th.num{text-align:right;font-variant-numeric:tabular-nums}
+.ltbl .dir-dl{color:#34e3a4}.ltbl .dir-ul{color:#5aa9ff}.ltbl .dir-bi{color:#a78bfa}
+.ltbl .ago{color:#6f83a8;font-size:12px}
+.ltbl tbody tr:hover td{background:rgba(90,169,255,.06)}
+
+.srcrow{border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:10px 12px;margin:8px 0;background:rgba(255,255,255,.03)}
+.srcrow-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.srcrow-n{font-weight:800;color:#eaf1fb;font-size:14px}
+.srcrow-tag{font-size:11px;font-weight:800;color:#04121a;background:linear-gradient(135deg,#34e3a4,#5aa9ff);border-radius:999px;padding:2px 9px}
+.srcrow-c{font-size:12px;color:#9fb0cc}
+.srcrow-a{margin-left:auto;display:flex;gap:6px}
+.srcrow-b{font:inherit;font-size:12px;font-weight:700;color:#dbe4f4;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:5px 11px;cursor:pointer}
+.srcrow-x{color:#ff9db0;border-color:rgba(255,157,176,.30);background:rgba(255,157,176,.08)}
+.srcrow-d{margin-top:6px}
+.srcrow-d summary{cursor:pointer;color:#5aa9ff;font-size:12px}
+.aigroup{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.airow{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.08);border-radius:9px;padding:6px 9px}
+.ailab{flex:none;font-size:11px;font-weight:800;border-radius:6px;padding:2px 7px}
+.ailab.dl{color:#5ff0bf;background:rgba(52,227,164,.12)}
+.ailab.ul{color:#9dc0ff;background:rgba(122,162,255,.14)}
+.aiurl{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:12px ui-monospace,Consolas,monospace;color:#c7d3e8}
+.srcrow-d pre{white-space:pre-wrap;word-break:break-all;font:12px/1.6 ui-monospace,Consolas,monospace;color:#c7d3e8;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px;margin:6px 0 2px;max-height:260px;overflow:auto}
+.srcrow-d pre{scrollbar-width:thin;scrollbar-color:rgba(120,150,200,.30) transparent}
+
+/* ===== 统一分段切换按钮（时间范围 .rb / 视图·显示 .cbtn 共用一套，覆盖上方旧样式） ===== */
+.rng,.mgrp{display:inline-flex;align-items:center;gap:4px;flex:0 0 auto;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);border-radius:10px;padding:3px}
+.mgrp b{font-weight:400;font-size:12px;color:#6f83a8;padding:0 4px 0 6px;margin-right:0}
+.rb,.cbtn{font-size:12px;color:#9fb4d8;padding:5px 12px;border:0;border-radius:7px;background:transparent;cursor:pointer;user-select:none;white-space:nowrap;transition:background .18s ease,color .18s ease}
+.rb:hover,.cbtn:hover{color:#e6eefc;background:rgba(255,255,255,.06)}
+.rb.on,.cbtn.on{background:linear-gradient(180deg,rgba(52,227,164,.30),rgba(52,227,164,.14));color:#eafff6;box-shadow:inset 0 0 0 1px rgba(52,227,164,.35)}
+
+/* ==================== 大厂规范整洁化（实色面板·克制·统一·等宽数字；仅视觉，不动结构/逻辑） ==================== */
+/* 1) 背景光斑压到极淡，只留一点点氛围，不再透过卡片造成随机紫/蓝底 */
+.aurora{opacity:.5}
+.blob{opacity:.09;filter:blur(120px)}
+/* 2) 卡片：半透明玻璃 -> 实色面板（Grafana/Vercel 式），统一边框/圆角/克制的层次阴影 */
+.card{background:#0f1626;border:1px solid rgba(255,255,255,.07);border-radius:14px;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:0 1px 0 rgba(255,255,255,.03),0 10px 28px -20px rgba(0,0,0,.7)}
+.card::before{display:none}
+/* 3) 顶栏：更干净、略实，分隔线克制 */
+.topbar{background:rgba(9,13,22,.9);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.08)}
+/* 4) 按钮：圆角与分段控件对齐(10px)，字重统一，过渡一致 */
+.btn{border-radius:10px;font-weight:600;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);color:var(--ink);transition:background .16s ease,border-color .16s ease,color .16s ease}
+.btn:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.18)}
+/* 5) 表头：三套表统一为同一压平样式，标签弱化+字距，粘性背景实色避免行透出 */
+th,.ltbl th,.ctbl th{background:#0d1424;color:var(--mut);font-size:11px;font-weight:600;letter-spacing:.03em;border-bottom:1px solid rgba(255,255,255,.08)}
+/* 6) 数字：等宽对齐（KPI 值 + 表格数值列），杜绝跳动 */
+.val,td.num,.ltbl .num,.ctbl .num{font-variant-numeric:tabular-nums;-webkit-font-feature-settings:"tnum" 1;font-feature-settings:"tnum" 1}
+/* 7) 徽章/信息胶囊：统一为克制的中性小胶囊 */
+.chip .c{font-size:12px;padding:4px 10px;border-radius:9px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:var(--mut)}
+.chip .c.btnlike:hover{background:rgba(255,255,255,.10);color:var(--ink)}
+/* 8) KPI 卡：统一内距，标签/数值层级清晰 */
+.kpi{padding:14px 16px}
+.kpi .lab{font-size:12px;color:var(--mut);letter-spacing:.01em}
+.kpi .val{margin-top:6px}
+.flood-panel{position:fixed;top:70px;right:16px;z-index:40;width:288px;max-width:calc(100vw - 24px);background:rgba(10,16,32,.94);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 50px -18px rgba(0,0,0,.75);overflow:hidden}
+.flood-panel .fp-h{display:flex;align-items:center;gap:8px;padding:10px 12px;font-size:13px;font-weight:700;color:var(--ink);border-bottom:1px solid var(--line);background:rgba(255,90,106,.10)}
+.flood-panel .fp-h b{color:#ff5a6a;font-weight:800;margin-left:2px}
+.flood-panel .fp-h .fp-x{margin-left:auto;cursor:pointer;color:var(--mut);font-size:15px;line-height:1;padding:0 4px;user-select:none}
+.flood-panel .fp-h .fp-x:hover{color:var(--ink)}
+.flood-panel .fp-list{max-height:52vh;overflow:auto;padding:6px}
+.flood-panel .fp-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;font-size:12px;color:var(--mut);font-variant-numeric:tabular-nums}
+.flood-panel .fp-row+.fp-row{border-top:1px solid rgba(255,255,255,.05)}
+.flood-panel .fp-row .fp-t{color:var(--ink);font-weight:600}
+.flood-panel .fp-row .fp-rate{margin-left:auto;color:#ff5a6a;font-weight:700;white-space:nowrap}
+.flood-panel .fp-empty{padding:14px 10px;text-align:center;color:var(--mut);font-size:12px}
+@media(max-width:560px){.flood-panel{top:auto;bottom:12px;right:12px;left:12px;width:auto;max-height:38vh}}
+</style>
+</head>
+<body>
+<div class="aurora"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+<div id="expired">会话已过期，<b onclick="showLogin()">点此重新登录</b></div>
+<div id="login"><div class="box">
+<h2>管理后台</h2><p>此页面仅管理员可见 · 需 Tailscale 内网访问</p>
+<input id="un" type="text" placeholder="账号" autocomplete="username" value="root">
+<input id="pw" type="password" placeholder="请输入管理密码" autocomplete="current-password">
+<div class="err" id="err"></div>
+<button id="lg">登 录</button>
+</div></div>
+
+<div class="flood-panel" id="floodPanel"><div class="fp-h"><span class="live"></span>🛡️ 实时拦截 <b id="fpCount">0</b><span class="fp-x" id="fpToggle" title="折叠/展开">▾</span></div><div class="fp-list" id="floodList"><div class="fp-empty">加载中…</div></div></div>
+<div class="topbar"><div class="in">
+<div class="logo">📊</div>
+<div class="brand"><b>打流测试 · 管理后台</b><span>访客测速实时统计 · 仅你可见</span></div>
+<div class="sp"><div class="rng" id="rng"><span class="rb on" data-r="all">全部</span><span class="rb" data-r="24h">24小时</span><span class="rb" data-r="7d">7天</span><span class="rb" data-r="30d">30天</span></div><a class="btn" id="exp">导出CSV</a><span class="muted" id="upd"></span><a class="btn" id="rf">刷新</a><a class="btn" href="/logout">退出</a></div>
+</div></div>
+
+<div class="wrap">
+<div class="card globe-card">
+  <div class="gh"><div><h3><span class="live"></span>全球实时访问</h3></div>
+  <div class="mtbar"><span class="mgrp"><b>视图</b><span class="cbtn on" id="vFlat">世界</span><span class="cbtn" id="vChina">中国</span></span><span class="mgrp"><b>显示</b><span class="cbtn on" id="dMap">地图</span><span class="cbtn" id="dTbl">表格</span></span></div>
+  <div class="chip"><span class="c" id="gNodes">节点 0</span><span class="c" id="gMeta" style="display:none"></span><span class="c btnlike" id="gFull">⛶ 全屏</span></div></div>
+  <div id="globe" style="display:none"></div>
+  <div id="flatmap" class="flatmap" style="display:none"><div style="display:flex;gap:8px;align-items:center;padding:8px 10px 2px"><span class="cbtn on" id="fViewMap" style="display:none">地图</span><span class="cbtn" id="fViewTbl" style="display:none">表格</span><span style="color:#6f83a8;font-size:12px;padding-left:2px">按国家/地区聚合</span></div><div id="flatchart" style="height:404px"></div><div id="flattbl" style="display:none;height:404px;overflow:auto"></div></div>
+  <div id="chinawrap" style="display:none"><div style="display:flex;gap:8px;align-items:center;padding:8px 10px 2px"><span class="cbtn on" id="cViewMap" style="display:none">地图</span><span class="cbtn" id="cViewTbl" style="display:none">表格</span><span id="chinabar" style="display:none;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;color:#8aa4cc;margin-left:4px"></span><span style="margin-left:auto;color:#6f83a8;font-size:12px">按省份聚合 · 颜色=节点数</span></div><div id="chinamap" style="height:470px"></div><div id="chinatbl" style="display:none;height:470px;overflow:auto"></div></div>
+  <div class="glegend"><span><i style="background:#34e3a4"></i>下载流 · 服务器→访客</span><span><i style="background:#5aa9ff"></i>上传流 · 访客→服务器</span><span><i style="background:#a78bfa"></i>双向流</span><span><i style="background:#f6c344"></i>杭州枢纽</span><span style="color:#6f83a8">悬停看 IP</span></div>
+</div>
+
+<div class="card" style="margin:0 0 14px"><div class="ch"><div class="ci">📡</div><div><h3>实时测速动态</h3><p>最近 90 秒内正在测速/打流的访客 · 自动刷新</p></div><div style="margin-left:auto"><span class="cbtn on" id="liveCnt">在线 0</span></div></div><div class="scroll" style="max-height:260px"><table class="ltbl"><thead><tr><th>类型</th><th>地区</th><th>运营商</th><th>访客 IP</th><th>方向</th><th class="num">下行</th><th class="num">上行</th><th class="num">消耗</th><th class="num">时间</th></tr></thead><tbody id="liveBody"></tbody></table></div></div>
+
+<div class="grid">
+  <div class="card kpi"><div class="lab">当前在线（120秒内）</div><div class="val g" id="cOnline">-</div><div class="sub">活跃访客 IP 数</div></div>
+  <div class="card kpi"><div class="lab">网站打开次数</div><div class="val" id="cVisits">-</div><div class="sub">页面访问 visit 事件</div></div>
+  <div class="card kpi"><div class="lab">测速总次数</div><div class="val b" id="cTests">-</div><div class="sub">完成打流 test 事件</div><div class="spark" id="sparkTests"></div></div>
+  <div class="card kpi"><div class="lab">累计打流总量</div><div class="val p" id="cBytes">-</div><div class="sub">下行+上行合计</div><div class="spark" id="sparkBytes"></div></div>
+  <div class="card kpi"><div class="lab">历史最高下行</div><div class="val g" id="cMaxDl">-<i>Mbps</i></div><div class="sub">所有访客峰值</div></div>
+  <div class="card kpi"><div class="lab">历史最高上行</div><div class="val b" id="cMaxUl">-<i>Mbps</i></div><div class="sub">所有访客峰值</div></div>
+  <div class="card kpi"><div class="lab">今日测速 / 流量</div><div class="val o" id="cToday">-</div><div class="sub">本地日期统计</div></div>
+  <div class="card kpi"><div class="lab">全球节点数</div><div class="val" id="cNodes">-</div><div class="sub">已定位的访客城市</div></div>
+  <div class="card kpi"><div class="lab">已拦截异常上报</div><div class="val r" id="cReject">-</div><div class="sub" id="cRejectSub">限速 / 不合理数值</div></div>
+  <div class="card kpi"><div class="lab">测速转化率</div><div class="val b" id="cConv">-</div><div class="sub" id="cConvSub">测速次数 / 打开次数</div></div>
+</div>
+
+<div class="lb-grid">
+  <div class="card"><div class="ch"><div class="ci">🏆</div><div><h3>测速最高榜</h3><p>按下行峰值 · 前 10</p></div></div><div class="scroll"><table><thead><tr><th class="c-rank">#</th><th>访客 IP</th><th>地区</th><th style="text-align:right">下行</th></tr></thead><tbody id="lbDlBody"></tbody></table></div></div>
+  <div class="card"><div class="ch"><div class="ci">🚀</div><div><h3>上传最高榜</h3><p>按上行峰值 · 前 10</p></div></div><div class="scroll"><table><thead><tr><th class="c-rank">#</th><th>访客 IP</th><th>地区</th><th style="text-align:right">上行</th></tr></thead><tbody id="lbUlBody"></tbody></table></div></div>
+  <div class="card"><div class="ch"><div class="ci">📈</div><div><h3>流量消耗榜</h3><p>按累计流量 · 前 10</p></div></div><div class="scroll"><table><thead><tr><th class="c-rank">#</th><th>访客 IP</th><th>地区</th><th style="text-align:right">流量</th></tr></thead><tbody id="lbBytesBody"></tbody></table></div></div>
+</div>
+
+<div class="card" style="margin-bottom:14px"><div class="ch"><div class="ci">📅</div><div><h3>近 30 天每日打流量</h3><p>每天所有访客累计传输量</p></div></div><div class="bars" id="bars"></div></div>
+
+<div class="card"><div class="ch"><div class="ci">🧾</div><div><h3><span class="live"></span>实时动态</h3><p>最近测速明细 · 自动刷新 · 来源徽标：网页 / PC / APP</p></div></div><div class="scroll"><table><thead><tr><th>时间</th><th>IP</th><th>国家/地区</th><th>线路</th><th>运营商</th><th>类型</th><th>模式</th><th style="text-align:right">下行</th><th style="text-align:right">上行</th><th style="text-align:right">流量</th><th style="text-align:right">时长</th></tr></thead><tbody id="evBody"></tbody></table></div></div>
+
+<div class="card" style="margin-bottom:14px"><div class="ch"><div class="ci">S</div><div><h3>内置源 · 源配置管理</h3><p>显示并维护三端共用的源池；可导入 .conf 并切换生效，内置源全部真实地址在此展示便于维护</p></div><div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap"><button id="btnSMImport" style="font:inherit;font-size:12px;font-weight:700;color:#dbe4f4;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:9px;padding:6px 12px;cursor:pointer">导入 .conf</button><button id="btnSMExport" style="font:inherit;font-size:12px;font-weight:700;color:#dbe4f4;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:9px;padding:6px 12px;cursor:pointer">导出配置</button><button id="bsAdvToggle" style="font:inherit;font-size:12px;font-weight:700;color:#5aa9ff;background:rgba(90,169,255,.10);border:1px solid rgba(90,169,255,.30);border-radius:9px;padding:6px 12px;cursor:pointer">高级 · 手填</button></div></div>
+<input type="file" id="smFile" accept=".conf,.json,application/json" style="display:none">
+<div id="smStatus" style="margin:8px 2px 2px;font-size:13px;color:#9fb0cc"></div>
+<div id="smMsg" style="margin:4px 2px 8px;min-height:14px;font-size:12px;color:#7fe3b8"></div>
+<div id="srcList"></div>
+<div id="bsAdv" style="display:none;margin-top:10px;border-top:1px dashed rgba(255,255,255,.14);padding-top:10px">
+<div class="lab" style="margin:2px 0 6px;color:#9fb0cc">二级菜单：手写下载/上传 URL（每行一个），保存后作为「手填覆盖」档并启用。</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:2px">
+<div><div class="lab" style="margin-bottom:6px">下载源（每行一个 URL）</div><textarea id="bsDl" spellcheck="false" style="width:100%;height:200px;font:12px/1.5 ui-monospace,Consolas,monospace;background:rgba(0,0,0,.25);color:#dbe4f4;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px;box-sizing:border-box;resize:vertical"></textarea></div>
+<div><div class="lab" style="margin-bottom:6px">上传源（每行一个 URL）</div><textarea id="bsUl" spellcheck="false" style="width:100%;height:200px;font:12px/1.5 ui-monospace,Consolas,monospace;background:rgba(0,0,0,.25);color:#dbe4f4;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px;box-sizing:border-box;resize:vertical"></textarea></div>
+</div>
+<div style="margin-top:8px;display:flex;gap:8px"><button id="bsLoad" style="font:inherit;font-size:12px;font-weight:700;color:#dbe4f4;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:9px;padding:6px 12px;cursor:pointer">载入</button><button id="bsSave" style="font:inherit;font-size:12px;font-weight:700;color:#04121a;background:linear-gradient(135deg,#34e3a4,#5aa9ff);border:0;border-radius:9px;padding:6px 12px;cursor:pointer">保存并启用</button></div>
+<div class="lab" id="bsMsg" style="margin-top:8px;min-height:14px"></div>
+</div>
+</div>
+
+<div class="foot">地球库 globe.gl · 昼夜纹理 Solar System Scope (CC BY 4.0) · 地理定位 ip-api.com</div>
+</div>
+
+<script>
+function id(x){return document.getElementById(x)}
+var globe=null, sunLight=null, ambLight=null, cloudMesh=null, enhanced=false, baseMode="art", HUB={lat:30.27,lon:120.15}, lastArcSig="", lastArcRebuild=0;
+function esriTile(x,y,z){ return "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/"+z+"/"+y+"/"+x; }
+function gibsTile(x,y,z){ var d=new Date(Date.now()-86400000); var s2=d.getUTCFullYear()+"-"+pad(d.getUTCMonth()+1)+"-"+pad(d.getUTCDate()); return "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/"+s2+"/GoogleMapsCompatible_Level9/"+z+"/"+y+"/"+x+".jpg"; }
+var _cloudComp=null;function makeCloudComposite(cb){ if(_cloudComp){cb(_cloudComp);return;} var d=new Image(); d.crossOrigin="anonymous"; d.onload=function(){ try{ var c=document.createElement("canvas"); c.width=d.naturalWidth; c.height=d.naturalHeight; var x=c.getContext("2d"); x.drawImage(d,0,0); var cl=new Image(); cl.crossOrigin="anonymous"; cl.onload=function(){ try{ x.globalCompositeOperation="lighter"; x.globalAlpha=0.55; x.drawImage(cl,0,0,c.width,c.height); x.globalAlpha=1; x.globalCompositeOperation="source-over"; _cloudComp=c.toDataURL("image/jpeg",0.86); cb(_cloudComp); }catch(e){ cb("/vendor/earth_daymap.jpg"); } }; cl.onerror=function(){ cb("/vendor/earth_daymap.jpg"); }; cl.src="/vendor/earth_clouds.jpg"; }catch(e){ cb("/vendor/earth_daymap.jpg"); } }; d.onerror=function(){ cb("/vendor/earth_daymap.jpg"); }; d.src="/vendor/earth_daymap.jpg"; }
+function applyGlobeBase(mode){ if(!globe)return; baseMode=(mode==="esri"||mode==="gibs")?mode:"art"; try{ if(mode==="esri"){ globe.globeTileEngineUrl(esriTile).globeTileEngineMaxLevel(5); if(cloudMesh)cloudMesh.visible=false; try{ id("gMeta").style.display=""; id("gMeta").textContent="真实影像·ESRI"; }catch(e){} } else if(mode==="gibs"){ globe.globeTileEngineUrl(null); if(cloudMesh)cloudMesh.visible=false; try{ id("gMeta").style.display=""; id("gMeta").textContent="卫星云图·合成"; }catch(e){} makeCloudComposite(function(u){ if(baseMode!=="gibs")return; globe.globeImageUrl(u); styleLight(); setTimeout(function(){reFX(10);},600); }); } else { globe.globeTileEngineUrl(null); globe.globeImageUrl("/vendor/earth_daymap.jpg"); if(cloudMesh)cloudMesh.visible=true; try{ id("gMeta").style.display="none"; }catch(e){} setTimeout(function(){reFX(12);applyNightLights();},600); } styleLight(); }catch(e){ try{ id("gMeta").textContent="imgerr:"+String(e&&e.message||e).slice(0,48); }catch(e2){} } }
+function styleLight(){ try{ var img=(baseMode!=="art"); if(ambLight) ambLight.intensity=img?1.7:0.012; if(sunLight) sunLight.intensity=img?0.7:3.6; var m=globe.globeMaterial(); if(m&&m.emissive){ m.emissiveIntensity=img?0.0:1.15; } }catch(e){} }
+function makeNightLightsTexture(img,TexC){ try{ var w=img.naturalWidth||img.width, h=img.naturalHeight||img.height; if(!w||!h)return null; var cv=document.createElement("canvas"); cv.width=w; cv.height=h; var ctx=cv.getContext("2d"); ctx.drawImage(img,0,0); var d=ctx.getImageData(0,0,w,h); var p=d.data; var s=0,n=0,blueSea=0; for(var i=0;i<p.length;i+=4){ var r=p[i],g=p[i+1],b=p[i+2]; var lum=r*0.3+g*0.59+b*0.11; s+=lum;n++; if(b>r+8&&b>g+8&&lum>18)blueSea++; } var mean=s/n; if(blueSea/Math.max(1,n)<0.05 && mean<62){ var t0=new TexC(img); t0.needsUpdate=true; return t0; } for(var j=0;j<p.length;j+=4){ var r2=p[j],g2=p[j+1],b2=p[j+2]; var lum2=r2*0.3+g2*0.59+b2*0.11; if(lum2<28||(b2>r2+8&&b2>g2+8)){ p[j]=0;p[j+1]=0;p[j+2]=0; } else { p[j]=Math.min(255,r2*1.9);p[j+1]=Math.min(255,g2*1.95);p[j+2]=Math.min(255,b2*1.7);} p[j+3]=255; } ctx.putImageData(d,0,0); var tex=new TexC(cv); tex.needsUpdate=true; return tex; }catch(e){ return null; } }
+var nightTex=null;function applyNightLights(){try{var m=globe&&globe.globeMaterial();if(!m||!nightTex)return;m.emissiveMap=nightTex;if(m.emissive){m.emissive.set(0xffffff);m.emissiveIntensity=1.15;}m.needsUpdate=true;}catch(e){}}
+function pad(n){return (n<10?"0":"")+n}
+function esc(s){s=String(s==null?"":s);s=s.split("&").join("&amp;");s=s.split("<").join("&lt;");s=s.split(">").join("&gt;");s=s.split('"').join("&quot;");return s}
+function fmtB(b){if(!b)b=0;var u=["B","KB","MB","GB","TB","PB"];var i=0;while(b>=1024&&i<5){b/=1024;i++}return (i===0?b:b.toFixed(b<10?2:1))+" "+u[i]}
+function fmtMps(v){v=v||0;return v.toFixed(v<10?1:0)}
+// 时长换算成中文分秒：20 秒 / 2 分 11 秒 / 1 小时 5 分，避免出现 131s 这种不好读的秒数。
+function fmtDur(v){if(!v)return '-';if(v<60)return (v<10?(Math.round(v*10)/10):Math.round(v))+"s";var m=Math.floor(v/60);if(m<60){var r=Math.round(v-m*60);return m+"m"+(r?" "+r+"s":"");}var h=Math.floor(m/60);return h+"h"+(m%60?" "+(m%60)+"m":"");}
+function dirOf(p){var d=(p.peakDl||0)>0,u=(p.peakUl||0)>0;if(d&&u)return "bi";if(u)return "ul";return "dl"}
+function dirColor(d){return d==="ul"?"#5aa9ff":(d==="bi"?"#a78bfa":"#34e3a4")}
+function dirText(d){return d==="ul"?"上传流 · 访客→服务器":(d==="bi"?"双向流 · 上下行":"下载流 · 服务器→访客")}
+function fmtTime(ts){var d=new Date(ts*1000);return pad(d.getMonth()+1)+"-"+pad(d.getDate())+" "+pad(d.getHours())+":"+pad(d.getMinutes())+":"+pad(d.getSeconds())}
+function hhmmss(){var d=new Date();return pad(d.getHours())+":"+pad(d.getMinutes())+":"+pad(d.getSeconds())}
+function flag(cc){if(!cc||cc.length!==2)return "";var A=0x1F1E6;var r="";for(var i=0;i<2;i++){var c=cc.toUpperCase().charCodeAt(i)-65+A;r+=String.fromCodePoint(c)}return r}
+function spark(vals,color){if(!vals||vals.length<2)return "";var w=140,h=34,max=1;for(var i=0;i<vals.length;i++){if(vals[i]>max)max=vals[i]}var pts=[];for(var i=0;i<vals.length;i++){var x=(i/(vals.length-1))*w;var y=h-(vals[i]/max)*(h-4)-2;pts.push(x.toFixed(1)+","+y.toFixed(1))}var line="M"+pts.join(" L");var area="M0,"+h+" L"+pts.join(" L")+" L"+w+","+h+" Z";return '<svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" width="100%" height="'+h+'"><path d="'+area+'" fill="'+color+'" opacity="0.12"/><path d="'+line+'" fill="none" stroke="'+color+'" stroke-width="1.6"/></svg>'}
+function ispCN(o){var x=(o||"").toLowerCase();if(!o)return "—";if(/mobile|cmcc|移动/.test(x))return "中国移动";if(/unicom|联通/.test(x))return "中国联通";if(/telecom|chinanet|电信/.test(x))return "中国电信";if(/broadnet|cbn|广电|broadcast/.test(x))return "中国广电";if(/cloud|aliyun|alibaba|tencent|amazon|aws|azure|google|zenlayer|digitalocean|vultr|ovh|hetzner|cdn|hosting|datacenter|data center|linode|bytedance|huawei|baidu|oracle|fastly|akamai|机房|数据中心|云计算|网络科技|服务器|网宿|fdcservers|layerhost|zouter|znet|xunteng|private customer|serverprovider|hostkey|contabo|chosepr|buyvm|racknerd|hostinger|namecheap|scaleway|gcore|cdn77|hostworld|vps|transit|backbone|kdata|twdm|seednet|proxy|vpn/.test(x))return "转发";return o;}
+function shortV6(ip){var p=ip.split(":");if(p.length<3)return ip;return p[0]+":"+p[1]+"\u2026"+p[p.length-1];}
+function copyText(txt){try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).catch(function(){});return;}}catch(e){}try{var ta=document.createElement("textarea");ta.value=txt;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);}catch(e){}}
+function flashCopied(el){var html=el.getAttribute("data-html")||el.innerHTML;el.classList.add("copied");el.innerHTML="\u5df2\u590d\u5236 \u2713";setTimeout(function(){el.innerHTML=html;el.classList.remove("copied");},1000);}
+document.addEventListener("click",function(e){var el=e.target&&e.target.closest?e.target.closest(".ipcopy"):null;if(!el)return;copyText(el.getAttribute("data-ip")||"");flashCopied(el);});
+function rankTable(elId,rows,valKey,unit,color,fmt){var tb=id(elId);if(!tb)return;if(!rows||!rows.length){tb.innerHTML='<tr><td class="empty" colspan="4">暂无数据</td></tr>';return}var max=1;for(var i=0;i<rows.length;i++){var v=rows[i][valKey]||0;if(v>max)max=v}var html="";for(var i=0;i<rows.length;i++){var r=rows[i];var v=r[valKey]||0;var w=(v/max)*100;var badge=i<3?('<span class="med m'+(i+1)+'">'+(i+1)+"</span>"):'<span class="rk">'+(i+1)+"</span>";var cc=r.cc||"";function cln(v){return (v&&v!=="self"&&v!=="domestic"&&v!=="China")?v:""}var cityCN=cln(r.city)||cln(r.region)||cln(r.country);var locTxt=(cc?cc+" ":"")+(cityCN||"");var loc=flag(cc)+" "+esc(locTxt);var ip=r.ip||"";var isV6=ip.indexOf(":")>=0;var ipHtml=isV6?esc(shortV6(ip)):esc(ip);html+='<tr><td class="c-rank">'+badge+'</td><td class="c-ip ipcopy" data-ip="'+esc(ip)+'" data-html="'+ipHtml+'" title="\u70b9\u51fb\u590d\u5236">'+ipHtml+'</td><td>'+loc+'</td><td class="c-val">'+fmt(v)+(unit?'<i>'+unit+"</i>":"")+'<div class="rbar"><span style="width:'+w+'%;background:'+color+'"></span></div></td></tr>'}tb.innerHTML=html}
+function barsChart(days){var el=id("bars");if(!el)return;if(!days||!days.length){el.innerHTML='<div class="empty">暂无数据</div>';return}var max=1;for(var i=0;i<days.length;i++){if(days[i].bytes>max)max=days[i].bytes}var html='<div class="bars-wrap">';for(var i=0;i<days.length;i++){var d=days[i];var pct=Math.max(2,(d.bytes/max)*100);html+='<div class="bcol" data-tip="'+esc(d.day)+" · "+d.tests+" 次 · "+fmtB(d.bytes)+'"><div class="btrack"><div class="bfill" style="height:'+pct+'%"></div></div></div>'}html+="</div>";el.innerHTML=html+'<div class="baxis"><span>'+esc(days[0].day)+"</span><span>"+esc(days[days.length-1].day)+"</span></div>"}
+function cliTag(c){
+  var k=String(c||"web").toLowerCase();
+  if(k==="pc")return "<span class='cli pc'>PC</span>";
+  if(k==="android"||k==="app"||k==="ios"||k.indexOf("harmony")===0)return "<span class='cli app'>APP</span>";
+  if(k==="web")return "<span class='cli web'>网页</span>";
+  return "<span class='cli x'>"+esc(k).slice(0,8)+"</span>";
+}
+function evTable(rows){var tb=id("evBody");if(!tb)return;if(!rows||!rows.length){tb.innerHTML='<tr><td class="empty" colspan="11">暂无访客数据 · 等待真实测速</td></tr>';return}var html="";for(var i=0;i<rows.length&&i<80;i++){var r=rows[i];var mode=r.mode||"";var mtag='<span class="tag t-'+(mode||"x")+'">'+esc(mode||"-")+"</span>";var reg=r.region==="domestic"?"国内":(r.region==="overseas"?"海外":(r.region||""));var ktag=r.kind==='speedtest'?'<span class="tag t-speedtest">测速</span>':(r.kind==='stream'?'<span class="tag t-stream">打流</span>':'—');var ip=r.ip||"";var ipHtml=ip.indexOf(":")>=0?esc(shortV6(ip)):esc(ip);html+="<tr><td class='mono'>"+fmtTime(r.ts)+"</td><td class='mono ipcopy' data-ip='"+esc(ip)+"' data-html='"+ipHtml+"' title='点击复制'>"+ipHtml+cliTag(r.client)+"</td><td>"+flag(r.cc)+" "+esc(r.country||"")+(r.city?(" \u00b7 "+esc(r.city)):"")+"</td><td>"+esc(reg)+"</td><td>"+ispCN(r.isp)+"</td><td>"+ktag+"</td><td>"+mtag+"</td><td class='num g'>"+fmtMps(r.peakDl)+"</td><td class='num b'>"+fmtMps(r.peakUl)+"</td><td class='num p'>"+fmtB(r.bytes)+"</td><td class='num'>"+fmtDur(r.sec)+"</td></tr>"}tb.innerHTML=html}
+
+function pointColor(p){return dirColor(dirOf(p))}
+function pointAlt(p){return 0.002}
+function pointLabel(p){return '<div style="font-size:12px;color:#fff;line-height:1.5"><b>'+esc(p.country||"访客")+'</b><br/>IP '+esc(p.ip||"-")+'<br/>↓'+fmtMps(p.peakDl)+' ↑'+fmtMps(p.peakUl)+' Mbps<br/>'+dirText(dirOf(p))+'</div>'}
+function arcColor(a){var d=a.dir||"dl";var c=d==="ul"?"90,169,255":(d==="bi"?"167,139,250":"52,227,164");return ["rgba("+c+",0.95)","rgba("+c+",0.32)"];}
+function initGlobe(){
+  if(typeof Globe!=="function"){id("gMeta").textContent="地球组件未加载";return}
+  var el=id("globe");
+  try{ globe=Globe()(el).width(el.clientWidth||900).height(el.clientHeight||440).globeImageUrl("/vendor/earth_daymap.jpg").backgroundImageUrl("/vendor/stars.jpg").backgroundColor("rgba(0,0,0,0)"); }
+  catch(e){ id("gMeta").textContent="地球渲染失败"; return; }
+  try{ globe.onGlobeReady(function(){ enhanceGlobe(); try{ globe.renderer().setPixelRatio(Math.min(1.5,window.devicePixelRatio||1)); }catch(e){} }); }catch(e){}
+  try{ globe.showAtmosphere(true).atmosphereColor("#3a7bd5").atmosphereAltitude(0.16); }catch(e){}
+  try{ globe.bordersUrl("/vendor/countries-110m.json").showBorders(true).borderColor("rgba(140,190,255,0.42)").borderAltitude(0.012).borderWidth(0.4); }catch(e){}
+  try{ globe.pointLat("lat").pointLng("lon").pointColor(pointColor).pointAltitude(pointAlt).pointSizeUnits("px").pointRadius(6).pointsMerge(false).pointLabel(pointLabel); }catch(e){}
+  try{ globe.arcStartLat("slat").arcStartLng("slon").arcEndLat("elat").arcEndLng("elon").arcColor(arcColor).arcAltitude(0.13).arcStroke(2.2).arcDashLength(0.028).arcDashGap(0.04).arcDashAnimateTime(2200).arcsTransitionDuration(0); }catch(e){}
+  try{ globe.ringLat("lat").ringLng("lon").ringStartTime("_t0").ringColor(function(r){return function(t){var a=1-t;var col=r.dir==="ul"?"90,169,255":(r.dir==="bi"?"167,139,250":"52,227,164");return "rgba("+col+","+a+")"}}).ringMaxRadius(3.2).ringPropagationSpeed(1.3).ringRepeatPeriod(1500); }catch(e){}
+  try{ globe.pointOfView({lat:28,lng:110,altitude:2.2},0);var ctl=globe.controls();ctl.autoRotate=true;ctl.autoRotateSpeed=0.35;ctl.enableZoom=true;ctl.enablePan=false;ctl.minDistance=140;ctl.maxDistance=620; }catch(e){}
+  try{ if(location.href.indexOf("demo")>=0){ globe.controls().autoRotate=false; } }catch(e){}
+  try{ window.addEventListener("resize",function(){if(globe)globe.width(el.clientWidth)}); }catch(e){}
+  applyDayNight();
+  try{}catch(e){}
+}
+function subsolar(){
+  var now=new Date();
+  var utcH=now.getUTCHours()+now.getUTCMinutes()/60+now.getUTCSeconds()/3600;
+  var lon=(12-utcH)*15; if(lon>180)lon-=360; if(lon<-180)lon+=360;
+  var start=Date.UTC(now.getUTCFullYear(),0,0);
+  var doy=Math.floor((now-start)/86400000);
+  var decl=-23.44*Math.cos(2*Math.PI*(doy+10)/365.25);
+  return {lat:decl,lon:lon};
+}
+function sunVec(lat,lon,r){
+  var phi=(90-lat)*Math.PI/180; var theta=(90-lon)*Math.PI/180;
+  return {x:(r*Math.sin(phi)*Math.cos(theta)), y:(r*Math.cos(phi)), z:(r*Math.sin(phi)*Math.sin(theta))};
+}
+function moveSun(){
+  if(!sunLight)return;
+  var ss=subsolar(); var v=sunVec(ss.lat,ss.lon,6);
+  sunLight.position.set(v.x,v.y,v.z); sunLight.intensity=(baseMode==="art")?3.6:0.7;
+}
+function faceNight(){
+  if(location.href.indexOf("demo")>=0){ try{ globe.pointOfView({lat:20,lng:112,altitude:1.9},0); }catch(e){} return; }
+  var ss=subsolar(); var lng=ss.lon+105; if(lng>180)lng-=360; if(lng<-180)lng+=360;
+  try{ if(baseMode==="art"){ globe.pointOfView({lat:30,lng:110,altitude:2.05},0); } }catch(e){}
+}
+function applyDayNight(){
+  if(!globe)return;
+  var tries=0;
+  var iv=setInterval(function(){
+    tries++;
+    try{
+      var m=globe.globeMaterial();
+      if(m&&m.map){
+        globe.scene().traverse(function(o){ if(o.isDirectionalLight)sunLight=o; if(o.isAmbientLight)ambLight=o; });
+        if(ambLight){ ambLight.intensity=(baseMode==="art")?0.012:1.7; }
+        moveSun(); faceNight();
+        try{
+          var TexC=m.map.constructor;
+          var img=new Image();
+          img.onload=function(){ try{ var nt=makeNightLightsTexture(img,TexC)||new TexC(img); nt.needsUpdate=true; try{nt.colorSpace=m.map.colorSpace;}catch(e){} nightTex=nt; applyNightLights(); if(!enhanced) id("gMeta").textContent="地球加载中"; enhanceGlobe(); }catch(e){} };
+          img.src="/vendor/earth_nightmap.jpg";
+        }catch(e){}
+        setInterval(moveSun,60000);
+        clearInterval(iv);
+      } else if(tries>60){ clearInterval(iv); }
+    }catch(e){ clearInterval(iv); }
+  },300);
+}
+function applySurfaceFX(){try{var m=globe&&globe.globeMaterial();if(!m||!m.map||!m.map.image||!m.map.image.width)return false;var TexC=m.map.constructor;var img=m.map.image;var cv=document.createElement("canvas");cv.width=img.width;cv.height=img.height;var ctx=cv.getContext("2d");ctx.drawImage(img,0,0);var d=ctx.getImageData(0,0,cv.width,cv.height);var px=d.data;for(var i=0;i<px.length;i+=4){var r=px[i],g=px[i+1],b=px[i+2];var oc=(b>r+6&&b>g+6&&b>70)?255:0;px[i]=px[i+1]=px[i+2]=oc;px[i+3]=255;}ctx.putImageData(d,0,0);var spec=new TexC(cv);spec.needsUpdate=true;try{spec.colorSpace=m.map.colorSpace;}catch(e){}m.specularMap=spec;try{m.specular.set(0x2f3f4f);}catch(e){}m.shininess=90;var bcv=document.createElement("canvas");bcv.width=img.width;bcv.height=img.height;var bctx=bcv.getContext("2d");bctx.drawImage(img,0,0);var bd=bctx.getImageData(0,0,bcv.width,bcv.height);var bp=bd.data;for(var q=0;q<bp.length;q+=4){var lum=bp[q]*0.3+bp[q+1]*0.59+bp[q+2]*0.11;bp[q]=bp[q+1]=bp[q+2]=lum;}bctx.putImageData(bd,0,0);var bump=new TexC(bcv);bump.needsUpdate=true;m.bumpMap=bump;m.bumpScale=1.1;m.needsUpdate=true;return true;}catch(e){return false;}}
+function reFX(n){if(n<=0)return;if(applySurfaceFX()){try{applyNightLights();}catch(e){}return;}setTimeout(function(){reFX(n-1);},300);}
+function enhanceGlobe(){
+  if(enhanced)return;
+  var m=globe.globeMaterial(); if(!m||!m.map) return;
+  enhanced=true;
+  try{
+    var TexC=m.map.constructor; var img=m.map.image;
+    if(img&&img.width){
+      var cv=document.createElement("canvas"); cv.width=img.width; cv.height=img.height;
+      var ctx=cv.getContext("2d"); ctx.drawImage(img,0,0);
+      var d=ctx.getImageData(0,0,cv.width,cv.height); var px=d.data;
+      for(var i=0;i<px.length;i+=4){ var r=px[i],g=px[i+1],b=px[i+2]; var oc=(b>r+6&&b>g+6&&b>70)?255:0; px[i]=px[i+1]=px[i+2]=oc; px[i+3]=255; }
+      ctx.putImageData(d,0,0);
+      var spec=new TexC(cv); spec.needsUpdate=true; try{spec.colorSpace=m.map.colorSpace;}catch(e){}
+      m.specularMap=spec; try{m.specular.set(0x2f3f4f);}catch(e){} m.shininess=90;
+      var bcv=document.createElement("canvas"); bcv.width=img.width; bcv.height=img.height; var bctx=bcv.getContext("2d"); bctx.drawImage(img,0,0); var bd=bctx.getImageData(0,0,bcv.width,bcv.height); var bp=bd.data; for(var q=0;q<bp.length;q+=4){ var lum=bp[q]*0.3+bp[q+1]*0.59+bp[q+2]*0.11; bp[q]=bp[q+1]=bp[q+2]=lum; } bctx.putImageData(bd,0,0); var bump=new TexC(bcv); bump.needsUpdate=true; m.bumpMap=bump; m.bumpScale=1.1; m.needsUpdate=true;
+    }
+  }catch(e){}
+  try{
+    var gm=null; globe.scene().traverse(function(o){ if(o.isMesh&&o.material===m) gm=o; });
+    if(!gm){ globe.scene().traverse(function(o){ if(!gm&&o.isMesh&&o.geometry&&o.geometry.type==="SphereGeometry") gm=o; }); }
+    if(!gm){ id("gMeta").textContent="no-globe-mesh"; }
+    else {
+      var cimg=new Image();
+      cimg.onload=function(){ try{
+        var ctex=new (m.map.constructor)(cimg); ctex.needsUpdate=true; try{ctex.colorSpace=m.map.colorSpace;}catch(e){}
+        var cm=new (m.constructor)(); cm.alphaMap=ctex; cm.transparent=true; cm.opacity=0.62; cm.depthWrite=false; cm.specular.set(0x000000); cm.shininess=0; cm.emissive.set(0x000000); cm.color.set(0xffffff); cm.needsUpdate=true;
+        var cl=new (gm.constructor)(gm.geometry, cm); cl.position.copy(gm.position); cl.quaternion.copy(gm.quaternion); cl.scale.copy(gm.scale).multiplyScalar(1.006);
+        globe.scene().add(cl); cloudMesh=cl;
+      }catch(e){ id("gMeta").textContent="cloud-err:"+e.message; } };
+      cimg.onerror=function(){ id("gMeta").textContent="cloud-img-err"; };
+      cimg.src="/vendor/earth_clouds.jpg";
+    }
+  }catch(e){ id("gMeta").textContent="cloud-block-err:"+e.message; }
+  try{ globe.atmosphereAltitude(0.24).atmosphereColor("#4aa3ff"); }catch(e){}
+  setInterval(function(){ if(cloudMesh){ try{ cloudMesh.rotateY(0.0006); }catch(e){} } },33);
+}
+function updateGlobe(a){
+  var pts=(a&&a.points)||[];
+  id("gNodes").textContent="节点 "+pts.length;
+  if(viewMode==="flat")renderFlat(pts);
+  lastPts=pts;
+  if(viewMode==="china")renderChina(pts);
+  if(!globe)return;
+  var _ak=[];for(var z=0;z<pts.length;z++){_ak.push((Math.round(pts[z].lat*10)/10)+"_"+(Math.round(pts[z].lon*10)/10)+"_"+dirOf(pts[z]));}_ak.sort();var arcSig=_ak.join(";");var _now=Date.now();
+  if(arcSig!==lastArcSig && (lastArcSig==="" || (_now-lastArcRebuild)>7000)){ lastArcSig=arcSig; lastArcRebuild=_now;
+    try{
+      var arcs=[];for(var i=0;i<pts.length;i++){var p=pts[i];if(p.lat===HUB.lat&&p.lon===HUB.lon)continue;var d=dirOf(p);if(d==="ul"){arcs.push({slat:p.lat,slon:p.lon,elat:HUB.lat,elon:HUB.lon,dir:d,cc:p.cc});}else{arcs.push({slat:HUB.lat,slon:HUB.lon,elat:p.lat,elon:p.lon,dir:d,cc:p.cc});}}
+      globe.arcsData(arcs);
+    }catch(e){}
+    try{
+      var seen={};var rings=[];for(var k=0;k<pts.length;k++){var q=pts[k];var key=q.lat+","+q.lon;if(seen[key])continue;seen[key]=1;rings.push({lat:q.lat,lon:q.lon,cc:q.cc,dir:dirOf(q),_t0:(rings.length%5)*260})}
+      globe.ringsData(rings);
+    }catch(e){}
+  }
+  var psig=pts.length+"|"+arcSig; if(psig!==lastPtSig){ lastPtSig=psig; try{ globe.pointsData(pts); }catch(e){} }
+}
+
+function showLogin(){id("login").style.display="flex"}
+function hideLogin(){id("login").style.display="none"}
+function stopAuto(){if(_iv){clearInterval(_iv);_iv=null}}
+function startAuto(){if(!_iv)_iv=setInterval(load,8000)}
+function showExpired(){var e=id("expired");if(e)e.style.display="flex";stopAuto()}
+function hideExpired(){var e=id("expired");if(e)e.style.display="none"}
+function doLogin(){
+  var u=(id("un").value||"root").trim();var p=id("pw").value;id("err").textContent="";
+  fetch("/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:u,password:p})}).then(function(r){
+    if(r.ok){hideLogin();hideExpired();load();startAuto()}else{id("err").textContent="账号或密码错误"}
+  }).catch(function(){id("err").textContent="网络错误"})
+}
+var RANGE="all",LAST=null;
+var _authed=false,_iv=null;
+function exportCSV(){if(!LAST||!LAST.recent||!LAST.recent.length){return}var rows=LAST.recent;var head=["time","ip","country","cc","region","mode","peakDl","peakUl","bytes","sec","client"];var lines=[head.join(",")];for(var i=0;i<rows.length;i++){var r=rows[i];lines.push([new Date((r.ts||0)*1000).toISOString(),r.ip||"",'"'+String(r.country||"").replace(/"/g,'""')+'"',r.cc||"",r.region||"",r.mode||"",r.peakDl||0,r.peakUl||0,r.bytes||0,r.sec||0,r.client||""].join(","))}var blob=new Blob(["\ufeff"+lines.join("\n")],{type:"text/csv;charset=utf-8"});var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="pml-stats-"+RANGE+".csv";document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500);}
+function bindDash(){var rng=id("rng");if(rng)rng.addEventListener("click",function(e){var b=e.target.closest(".rb");if(!b)return;RANGE=b.getAttribute("data-r");var all=rng.querySelectorAll(".rb");for(var i=0;i<all.length;i++)all[i].classList.toggle("on",all[i]===b);load();});var ex=id("exp");if(ex)ex.addEventListener("click",exportCSV);}
+function bsLines(t){return t.split(/\r?\n/).map(function(x){return x.trim()}).filter(function(x){return x});}
+var SM=null;
+function setSMMsg(m){var e=document.getElementById("smMsg");if(e)e.textContent=m;}
+function smApi(post){return fetch("/api/admin/sources",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify(post)}).then(function(r){return r.json()});}
+function smLoad(){return fetch("/api/admin/sources",{credentials:"same-origin"}).then(function(r){if(r.status===401)throw new Error("auth");return r.json()}).then(function(j){SM=j;renderSM();}).catch(function(){var e=document.getElementById("smStatus");if(e)e.textContent="源列表加载失败（可能未登录）";});}
+function smExport(){if(!SM)return;var conf={format:"pml",version:2,selectedProfileId:(SM.selected<0?-1:SM.selected),profiles:(SM.profiles||[]).map(function(p){return{id:p.id,name:p.name,downloadUrls:p.download||[],uploadUrls:p.upload||[]};})};var b=new Blob([JSON.stringify(conf,null,2)],{type:"application/json"});var a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="speed_profiles.conf";document.body.appendChild(a);a.click();a.remove();}
+function renderSM(){var box=document.getElementById("srcList");if(!box||!SM)return;var sel=SM.selected;var act=(SM.active&&SM.active.name)?SM.active.name:"内置源（客户端默认）";var st=document.getElementById("smStatus");if(st)st.innerHTML='当前在用：<b style="color:#7fe3b8">'+esc(act)+"</b>";
+  function urls(dl,ul){var s="";(dl||[]).forEach(function(u){s+="[下载] "+esc(u)+"\n";});(ul||[]).forEach(function(u){s+="[上传] "+esc(u)+"\n";});return s||"（无）";}
+  var html="";var b=SM.builtin||{};
+  html+='<div class="srcrow"><div class="srcrow-h"><span class="srcrow-n">内置源（客户端默认）</span>'+(sel<0?'<span class="srcrow-tag">使用中</span>':'')+'<span class="srcrow-c">下载 '+(b.dlN||0)+' · 上传 '+(b.ulN||0)+'</span>'+(sel<0?'':'<button class="srcrow-b" data-act="useBuiltin">使用内置</button>')+'</div><details class="srcrow-d"><summary>查看全部源</summary><pre>'+urls(b.download,b.upload)+'</pre></details></div>';
+  var ai=SM.ai||{};var aiDl=ai.download||[],aiUl=ai.upload||[];
+  html+='<div class="srcrow"><div class="srcrow-h"><span class="srcrow-n">AI 探测源</span><span class="srcrow-tag" style="background:linear-gradient(135deg,#a78bfa,#5aa9ff)">自动纳入</span><span class="srcrow-c">下载 '+(ai.dlN||0)+' · 上传 '+(ai.ulN||0)+' · 探测健康即入库，可逐条删除</span></div>';
+  if(aiDl.length+aiUl.length===0){html+='<div class="srcrow-c" style="margin-top:6px">暂无 AI 探测源（维护器探测到新可用源后自动出现在此）</div>';}
+  else{html+='<div class="aigroup">';aiDl.forEach(function(u,i){html+='<div class="airow"><span class="ailab dl">下载</span><span class="aiurl">'+esc(u)+'</span><button class="srcrow-b srcrow-x" data-act="delAi" data-kind="download" data-idx="'+i+'">删除</button></div>';});aiUl.forEach(function(u,i){html+='<div class="airow"><span class="ailab ul">上传</span><span class="aiurl">'+esc(u)+'</span><button class="srcrow-b srcrow-x" data-act="delAi" data-kind="upload" data-idx="'+i+'">删除</button></div>';});html+='</div>';}
+  html+='</div>';
+  (SM.profiles||[]).forEach(function(p){var cur=(sel===p.id);html+='<div class="srcrow"><div class="srcrow-h"><span class="srcrow-n">'+esc(p.name)+'</span>'+(cur?'<span class="srcrow-tag">使用中</span>':'')+'<span class="srcrow-c">下载 '+(p.dlN||0)+' · 上传 '+(p.ulN||0)+'</span><span class="srcrow-a">'+(cur?'':'<button class="srcrow-b" data-act="use" data-id="'+p.id+'">使用</button>')+'<button class="srcrow-b srcrow-x" data-act="del" data-id="'+p.id+'">删除</button></span></div><details class="srcrow-d"><summary>查看全部源</summary><pre>'+urls(p.download,p.upload)+'</pre></details></div>';});
+  box.innerHTML=html;
+}
+function smWire(){if(window._smWired)return;window._smWired=true;
+  document.getElementById("srcList").addEventListener("click",function(e){var b=e.target.closest?e.target.closest("[data-act]"):null;if(!b)return;var a=b.getAttribute("data-act");var did=parseInt(b.getAttribute("data-id"),10);if(isNaN(did))did=0;
+    if(a==="use"){setSMMsg("切换中...");smApi({action:"use",id:did}).then(function(j){setSMMsg(j&&j.ok?"已切换":"失败："+((j&&j.error)||""));smLoad();});}
+    else if(a==="useBuiltin"){setSMMsg("切到内置...");smApi({action:"use",id:-1}).then(function(){smLoad();});}
+    else if(a==="del"){if(!window.confirm("确定删除该配置档？"))return;smApi({action:"delete",id:did}).then(function(){setSMMsg("已删除");smLoad();});}    else if(a==="delAi"){var kind=b.getAttribute("data-kind");var idx=parseInt(b.getAttribute("data-idx"),10);var arr=(kind==="upload"&&SM.ai&&SM.ai.upload)?SM.ai.upload:((SM.ai&&SM.ai.download)?SM.ai.download:[]);var url=arr[idx];if(!url){setSMMsg("源已变动，请刷新");return;}if(!window.confirm("确定删除该 AI 探测源？\n"+url))return;setSMMsg("删除中...");smApi({action:"delete_ai",kind:kind,url:url}).then(function(j){setSMMsg(j&&j.ok?"已删除":"失败："+((j&&j.error)||""));smLoad();});}
+  });
+  var bi=document.getElementById("btnSMImport");if(bi)bi.addEventListener("click",function(){document.getElementById("smFile").click();});
+  var fi=document.getElementById("smFile");if(fi)fi.addEventListener("change",function(ev){var f=ev.target.files&&ev.target.files[0];if(!f)return;f.text().then(function(t){setSMMsg("导入中...");smApi({action:"import",data:t}).then(function(j){setSMMsg(j&&j.ok?("导入成功，共 "+j.profiles+" 个档"):("导入失败："+((j&&j.error)||"")));smLoad();});}).catch(function(){setSMMsg("读取文件失败");});ev.target.value="";});
+  var be=document.getElementById("btnSMExport");if(be)be.addEventListener("click",smExport);
+  var at=document.getElementById("bsAdvToggle");if(at)at.addEventListener("click",function(){var box=document.getElementById("bsAdv");if(!box)return;var open=(box.style.display==="none"||!box.style.display);box.style.display=open?"block":"none";if(open){smLoadManual();}});
+}
+function smLoadManual(){if(!SM)return;var mp=null;(SM.profiles||[]).forEach(function(p){if(p.id===900000001)mp=p;});var d=document.getElementById("bsDl"),u=document.getElementById("bsUl");if(d)d.value=mp?(mp.download||[]).join("\n"):"";if(u)u.value=mp?(mp.upload||[]).join("\n"):"";}
+function bsLoad(){smLoadManual();id("bsMsg").textContent="已从「手填覆盖」载入";}
+function bsSave(){var dl=bsLines(id("bsDl").value),ul=bsLines(id("bsUl").value);id("bsMsg").textContent="保存中...";smApi({action:"manual",download:dl,upload:ul}).then(function(j){id("bsMsg").textContent=(j&&j.ok)?("已保存为「手填覆盖」并启用：下载 "+j.downloadUrls+" / 上传 "+j.uploadUrls):("失败："+((j&&j.error)||""));smLoad();}).catch(function(){id("bsMsg").textContent="保存失败";});}
+
+function floodPoll(){try{fetch("/api/admin/flood",{credentials:"same-origin"}).then(function(r){return r.status===200?r.json():null}).then(function(d){if(!d)return;var el=id("fpCount");if(el)el.textContent=d.rejectedFlood||0;var box=id("floodList");if(!box)return;var list=d.flood||[];if(!list.length){box.innerHTML='<div class="fp-empty">暂无洪水拦截</div>';return;}var h="";for(var i=0;i<list.length&&i<80;i++){var it=list[i];var tm=it.ts?new Date(it.ts*1000).toLocaleTimeString("zh-CN",{hour12:false}):"";h+='<div class="fp-row"><span class="fp-t">'+esc(it.ip)+'</span><span>'+esc(tm)+'</span><span class="fp-rate">'+(it.rate||0)+'/秒</span></div>';}box.innerHTML=h;}).catch(function(){});}catch(e){}}
+function load(){
+  fetch("/api/stats?range="+RANGE,{credentials:"same-origin"}).then(function(r){
+    if(r.status===401){if(_authed){showExpired();}else{showLogin();}return}
+    return r.json().then(function(a){render(a);try{if(!window._smOnce){window._smOnce=true;smLoad();}}catch(e){}})
+  }).catch(function(){})
+}
+function livePanel(pts){ var el=document.getElementById("liveBody"); var cnt=document.getElementById("liveCnt"); if(!el)return; pts=pts||[]; var now=Math.floor(Date.now()/1000); var cut=now-90; var byIp={}; for(var i=0;i<pts.length;i++){ var p=pts[i]; if(p.ts&&p.ts>=cut){ var k=p.ip||("n"+i); if(!byIp[k]||p.ts>byIp[k].ts) byIp[k]=p; } } var act=Object.keys(byIp).map(function(k){return byIp[k];}); act.sort(function(a,b){return b.ts-a.ts;}); if(cnt)cnt.textContent="在线 "+act.length; var lim=act.slice(0,40); var h=""; for(var i=0;i<lim.length;i++){ var p=lim[i]; var reg=(p.province||p.country||"—")+(p.city&&p.city!==p.province?(" "+p.city):"")+(p.district?(" "+p.district):""); var d=p.mode||""; var dc=d==="upload"?"dir-ul":(d==="bidirectional"?"dir-bi":"dir-dl"); var dtxt=d==="upload"?"上传":(d==="bidirectional"?"双向":(d==="download"?"下载":"—")); var ago=Math.max(0,now-(p.ts||now)); var atxt=ago<60?(ago+"秒前"):(Math.round(ago/60)+"分前"); var kbd=p.kind==="speedtest"?"<span class='tag t-speedtest'>测速</span>":(p.kind==="stream"?"<span class='tag t-stream'>打流</span>":"—");h+="<tr><td>"+kbd+"</td><td>"+esc(reg)+"</td><td>"+ispCN(p.isp)+"</td><td>"+esc(p.ip||"")+"</td><td class='"+dc+"'>"+dtxt+"</td><td class='num'>"+(p.peakDl?Math.round(p.peakDl):"—")+"</td><td class='num'>"+(p.peakUl?Math.round(p.peakUl):"—")+"</td><td class='num'>"+fmtB(p.bytes)+"</td><td class='num ago'>"+atxt+"</td></tr>"; } if(!h){ h="<tr><td colspan='8' style='text-align:center;color:#6f83a8;padding:18px'>当前 90 秒内没有活跃的测速/打流</td></tr>"; } el.innerHTML=h; }
+function render(a){
+  hideLogin();_authed=true;hideExpired();
+  id("cOnline").textContent=a.online||0;
+  id("cVisits").textContent=a.visits||0;
+  id("cTests").textContent=a.tests||0;
+  id("cBytes").textContent=fmtB(a.totalBytes);
+  id("cMaxDl").innerHTML=fmtMps(a.maxDl)+"<i>Mbps</i>";
+  id("cMaxUl").innerHTML=fmtMps(a.maxUl)+"<i>Mbps</i>";
+  id("cToday").textContent=(a.todayTests||0)+" / "+fmtB(a.todayBytes);
+  id("cNodes").textContent=(a.points||[]).length;
+  LAST=a;var rr=(a.rejectedRate||0),rb=(a.rejectedBad||0),rf=(a.rejectedFlood||0);id("cReject").innerHTML=(rr+rb+rf)+"<i>次</i>";id("cRejectSub").textContent="限速 "+rr+" · 异常 "+rb+" · 洪水 "+rf;var _v=(a.visits||0),_t=(a.tests||0);id("cConv").innerHTML=(_v>0?Math.round(_t/_v*100):0)+"<i>%</i>";id("cConvSub").textContent=(_v>0?("每 100 次打开约 "+Math.round(_t/_v*100)+" 次测速"):("测速 "+_t+" · 打开 "+_v));
+  var db=[],dt=[];for(var i=0;i<(a.days||[]).length;i++){db.push(a.days[i].bytes||0);dt.push(a.days[i].tests||0)}
+  id("sparkBytes").innerHTML=spark(db,"#a78bfa");
+  id("sparkTests").innerHTML=spark(dt,"#5aa9ff");
+  barsChart(a.days);
+  rankTable("lbDlBody",a.lbDl,"peakDl","Mbps","#34e3a4",fmtMps);
+  rankTable("lbUlBody",a.lbUl,"peakUl","Mbps","#5aa9ff",fmtMps);
+  rankTable("lbBytesBody",a.lbBytes,"bytes","","#a78bfa",fmtB);
+  evTable(a.recent);
+  livePanel(a.points);
+  updateGlobe(a);
+  id("upd").textContent="更新于 "+hhmmss();
+}
+
+function demo(){
+  var pts=[{lat:30.27,lon:120.15,cc:"CN",country:"中国·杭州",ip:"203.0.113.1",peakDl:913,peakUl:403,test:true},{lat:22.3,lon:114.1,cc:"HK",country:"中国香港",ip:"203.0.113.2",peakDl:720,peakUl:260,test:true},{lat:35.6,lon:139.7,cc:"JP",country:"日本",ip:"203.0.113.3",peakDl:480,peakUl:150,test:true},{lat:1.35,lon:103.8,cc:"SG",country:"新加坡",ip:"203.0.113.4",peakDl:600,peakUl:240,test:true},{lat:37.5,lon:127.0,cc:"KR",country:"韩国",ip:"203.0.113.5",peakDl:300,peakUl:90,test:true},{lat:-33.8,lon:151.2,cc:"AU",country:"澳大利亚",ip:"203.0.113.6",peakDl:160,peakUl:45,test:true},{lat:51.5,lon:-0.12,cc:"GB",country:"英国",ip:"203.0.113.7",peakDl:120,peakUl:33,test:true},{lat:40.7,lon:-74.0,cc:"US",country:"美国",ip:"203.0.113.8",peakDl:210,peakUl:70,test:true}];
+  var days=[];for(var i=11;i>=0;i--){var d=new Date(Date.now()-i*86400000);days.push({day:d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()),tests:3+((i*7)%18),visits:6+((i*5)%22),bytes:(0.4+((i*13)%9)/3)*1e9})}
+  var lbDl=[{ip:"203.0.113.1",cc:"CN",country:"中国",peakDl:913},{ip:"203.0.113.2",cc:"HK",country:"香港",peakDl:720},{ip:"203.0.113.4",cc:"SG",country:"新加坡",peakDl:600},{ip:"203.0.113.8",cc:"US",country:"美国",peakDl:210},{ip:"203.0.113.3",cc:"JP",country:"日本",peakDl:480}];
+  var lbUl=[{ip:"203.0.113.1",cc:"CN",country:"中国",peakUl:403},{ip:"203.0.113.4",cc:"SG",country:"新加坡",peakUl:240},{ip:"203.0.113.2",cc:"HK",country:"香港",peakUl:260},{ip:"203.0.113.8",cc:"US",country:"美国",peakUl:70}];
+  var lbBytes=[{ip:"203.0.113.1",cc:"CN",country:"中国",bytes:5.7e9},{ip:"203.0.113.2",cc:"HK",country:"香港",bytes:2.1e9},{ip:"203.0.113.4",cc:"SG",country:"新加坡",bytes:1.4e9},{ip:"203.0.113.3",cc:"JP",country:"日本",bytes:0.8e9}];
+  var recent=[{ts:Math.floor(Date.now()/1000)-20,ip:"203.0.113.1",cc:"CN",country:"中国",region:"国内",mode:"bidirectional",peakDl:913,peakUl:403,bytes:5.7e9,sec:37},{ts:Math.floor(Date.now()/1000)-120,ip:"203.0.113.2",cc:"HK",country:"香港",region:"海外",mode:"download",peakDl:720,peakUl:0,bytes:2.1e9,sec:22},{ts:Math.floor(Date.now()/1000)-300,ip:"203.0.113.4",cc:"SG",country:"新加坡",region:"海外",mode:"upload",peakDl:0,peakUl:240,bytes:0.6e9,sec:15},{ts:Math.floor(Date.now()/1000)-900,ip:"203.0.113.3",cc:"JP",country:"日本",region:"海外",mode:"download",peakDl:480,peakUl:0,bytes:0.8e9,sec:18}];
+  render({online:3,visits:42,tests:28,totalBytes:8.4e9,maxDl:913,maxUl:403,todayTests:6,todayBytes:1.2e9,points:pts,days:days,lbDl:lbDl,lbUl:lbUl,lbBytes:lbBytes,recent:recent});
+}
+
+var chinaChart=null, chinaReady=false, lastPts=[];
+var chinaStack=[], chinaFeat={}, chinaCurMap="china", chinaBarWired=false;
+var CHINA_POLY=[],CHINA_CNT={},CHINA_ZOOM=1.45,CHINA_HOVER=null,CHINA_WIRED=false,CHINA_ROAM_T=0;
+function chinaBuildPolys(geo){ try{ CHINA_POLY=[]; (geo&&geo.features||[]).forEach(function(f){ var pr=f.properties||{}; if(!pr.name)return; var g=f.geometry; if(!g)return; var polys=g.type==="Polygon"?[g.coordinates]:(g.type==="MultiPolygon"?g.coordinates:[]); var rings=[]; polys.forEach(function(poly){ poly.forEach(function(r){ if(r&&r.length>2)rings.push(r); }); }); CHINA_POLY.push({name:pr.name,rings:rings}); }); }catch(e){ CHINA_POLY=[]; } }
+function chinaInRing(pt,ring){ var x=pt[0],y=pt[1],c=false; for(var i=0,j=ring.length-1;i<ring.length;j=i++){ var xi=ring[i][0],yi=ring[i][1],xj=ring[j][0],yj=ring[j][1]; if(((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi))c=!c; } return c; }
+function chinaProvOf(pt){ for(var i=0;i<CHINA_POLY.length;i++){ var P=CHINA_POLY[i]; for(var r=0;r<P.rings.length;r++){ if(chinaInRing(pt,P.rings[r]))return P.name; } } return ""; }
+function chinaMix(a,b,t){ return [Math.round(a[0]+(b[0]-a[0])*t),Math.round(a[1]+(b[1]-a[1])*t),Math.round(a[2]+(b[2]-a[2])*t)]; }
+function chinaHeat(t){ t=Math.max(0,Math.min(1,t)); var base=[26,46,82],mid=[26,96,92],hi=[52,227,164]; var c=t<0.5?chinaMix(base,mid,t/0.5):chinaMix(mid,hi,(t-0.5)/0.5); return "rgb("+c[0]+","+c[1]+","+c[2]+")"; }
+function chinaFilterCN(pts){ pts=pts||[]; var cn=[],i,q; for(i=0;i<pts.length;i++){ q=pts[i]; if(q.cc==="CN"||(q.lat>3&&q.lat<54&&q.lon>73&&q.lon<136)){ cn.push(q); } } return cn; }
+var CHINA_VTW=false;
+var FLAT_VTW=false;var lastPtSig="";
+function flatAgg(pts){ var agg={}; pts=pts||[]; for(var i=0;i<pts.length;i++){ var c=pts[i]; var nm=c.country||c.cc||"未知"; var a=agg[nm]||(agg[nm]={n:0,dl:0,ul:0,maxdl:0,maxul:0,cc:c.cc||""}); a.n++; a.dl+=(c.peakDl||0); a.ul+=(c.peakUl||0); if((c.peakDl||0)>a.maxdl)a.maxdl=c.peakDl||0; if((c.peakUl||0)>a.maxul)a.maxul=c.peakUl||0; } return agg; }
+function flatRenderTable(){ var el=id("flattbl"); if(!el)return; var pts=lastPts||[]; var agg=flatAgg(pts); var total=pts.length||1,maxn=1; Object.keys(agg).forEach(function(k){ if(agg[k].n>maxn)maxn=agg[k].n; }); var keys=Object.keys(agg).sort(function(a,b){return agg[b].n-agg[a].n;}); var h="<table class='ctbl'><thead><tr><th>国家/地区</th><th>节点数</th><th>占比</th><th>平均下行</th><th>平均上行</th><th>下行峰值</th></tr></thead><tbody>"; for(var i=0;i<keys.length;i++){ var k=keys[i]; var a=agg[k]; var pct=(a.n*100/total).toFixed(1); h+="<tr><td>"+(a.cc?flag(a.cc)+" ":"")+esc(k)+"</td><td><span class='cbar' style='width:"+Math.round(a.n/maxn*80)+"px'></span>"+a.n+"</td><td>"+pct+"%</td><td>"+Math.round(a.dl/a.n)+" Mbps</td><td>"+Math.round(a.ul/a.n)+" Mbps</td><td>"+Math.round(a.maxdl)+" Mbps</td></tr>"; } h+="</tbody></table>"; el.innerHTML=h; }
+function wireFViewToggle(){ if(FLAT_VTW)return; FLAT_VTW=true; try{ var bm=id("fViewMap"),bt=id("fViewTbl"); if(bm)bm.onclick=function(){ var mp=id("flatchart"),tb=id("flattbl"); if(mp)mp.style.display="block"; if(tb)tb.style.display="none"; bm.className="cbtn on"; if(bt)bt.className="cbtn"; if(flatChart){try{flatChart.resize()}catch(e){}} }; if(bt)bt.onclick=function(){ var mp=id("flatchart"),tb=id("flattbl"); if(mp)mp.style.display="none"; if(tb)tb.style.display="block"; bt.className="cbtn on"; if(bm)bm.className="cbtn"; }; }catch(e){} }
+
+function chinaAgg(cn){ var agg={}; cn=cn||[]; for(var i=0;i<cn.length;i++){ var c=cn[i]; var pv=c.province; if(!pv){ if(c.__prov===undefined){ c.__prov=chinaProvOf([c.lon,c.lat]); } pv=c.__prov; } if(!pv) continue; var a=agg[pv]||(agg[pv]={n:0,dl:0,ul:0,maxdl:0,maxul:0}); a.n++; a.dl+=(c.peakDl||0); a.ul+=(c.peakUl||0); if((c.peakDl||0)>a.maxdl)a.maxdl=c.peakDl||0; if((c.peakUl||0)>a.maxul)a.maxul=c.peakUl||0; } return agg; }
+function chinaLevelAgg(){ var cn=chinaFilterCN(lastPts); var st=chinaStack; var n=st.length; var provF=n>=2?String(st[1].label||""):null; var cityF=n>=3?String(st[2].label||""):null; var group=n<=1?"province":(n===2?"city":"district"); var agg={}; var total=0; for(var i=0;i<cn.length;i++){ var c=cn[i]; var pv=c.province||provOf(c); if(provF&&pv!==provF) continue; if(cityF&&String(c.city||"")!==cityF) continue; var key=group==="province"?pv:(group==="city"?String(c.city||""):String(c.district||"")); total++; if(!key) continue; var a=agg[key]||(agg[key]={n:0,dl:0,ul:0,maxdl:0,maxul:0}); _cnAdd(a,c); } return {agg:agg,total:total}; }
+function chinaMapOption(){ var _lv=chinaLevelAgg(); var agg=_lv.agg; CHINA_CNT=agg; var total=_lv.total||1, maxn=1; Object.keys(agg).forEach(function(k){ if(agg[k].n>maxn)maxn=agg[k].n; }); var data=Object.keys(agg).map(function(k){ return {name:k,value:agg[k].n}; }); return { backgroundColor:"transparent", animation:true, animationDuration:500, animationDurationUpdate:600, tooltip:{trigger:"item",confine:true,backgroundColor:"rgba(12,18,34,0.92)",borderColor:"rgba(120,170,255,0.35)",textStyle:{color:"#e7eefb",fontSize:12},formatter:function(p){ var a=agg[p.name]; if(!a) return p.name+"：0"; return "<b>"+p.name+"</b><br/>节点 "+a.n+"（"+(a.n*100/total).toFixed(1)+"%）<br/>平均下行 "+Math.round(a.dl/a.n)+" Mbps<br/>平均上行 "+Math.round(a.ul/a.n)+" Mbps<br/>下行峰值 "+Math.round(a.maxdl)+" · 上行峰值 "+Math.round(a.maxul)+" Mbps"; }}, visualMap:{show:true,type:"continuous",min:0,max:maxn,left:14,bottom:14,text:["多","少"],calculable:false,inRange:{color:["#12203a","#153a52","#1a605c","#28a878","#34e3a4"]},textStyle:{color:"#8aa4cc",fontSize:11},itemWidth:12,itemHeight:100}, series:[{type:"map",map:chinaCurMap,roam:false,zoom:(chinaCurMap==="china"?1.33:1),aspectScale:1,boundingCoords:(chinaCurMap==="china"?[[73,54],[136,3]]:undefined),selectedMode:false,label:{show:true,color:"#dff0ff",fontSize:10,textShadowColor:"#000000",textShadowBlur:3,formatter:function(p){ return p.value? (String(p.name).replace(/(省|市|自治区|特别行政区|壮族|回族|维吾尔)/g,"")+"\n"+p.value):""; }},itemStyle:{areaColor:"#0e1830",borderColor:"rgba(120,190,255,.5)",borderWidth:1},emphasis:{label:{show:true,color:"#ffffff",fontSize:11},itemStyle:{areaColor:"rgba(52,227,164,.35)"}},data:data}] }; }
+function chinaFullOption(){ return chinaMapOption(); }
+var CHINA_EXP={};
+function provOf(c){ if(c.province) return c.province; if(c.__prov===undefined){ c.__prov=chinaProvOf([c.lon,c.lat]); } return c.__prov; }
+function _cnAdd(a,c){ a.n++; a.dl+=(c.peakDl||0); a.ul+=(c.peakUl||0); if((c.peakDl||0)>a.maxdl)a.maxdl=c.peakDl||0; if((c.peakUl||0)>a.maxul)a.maxul=c.peakUl||0; }
+function chinaTree(cn){ var T={}; cn=cn||[]; for(var i=0;i<cn.length;i++){ var c=cn[i]; var pv=provOf(c); if(!pv) continue; var P=T[pv]||(T[pv]={n:0,dl:0,ul:0,maxdl:0,maxul:0,cities:{}}); _cnAdd(P,c); var cv=c.city||""; if(!cv) continue; var C=P.cities[cv]||(P.cities[cv]={n:0,dl:0,ul:0,maxdl:0,maxul:0,districts:{}}); _cnAdd(C,c); var dv=c.district||""; if(!dv) continue; var D=C.districts[dv]||(C.districts[dv]={n:0,dl:0,ul:0,maxdl:0,maxul:0}); _cnAdd(D,c); } return T; }
+function chinaRenderTable(){ var el=document.getElementById("chinatbl"); if(!el)return; if(!el._cwired){ el._cwired=true; el.addEventListener("click",chinaTblClick); } var cn=chinaFilterCN(lastPts); var T=chinaTree(cn); var total=cn.length||1; var maxn=1; Object.keys(T).forEach(function(k){ if(T[k].n>maxn)maxn=T[k].n; }); var h="<table class='ctbl'><thead><tr><th>地区</th><th>节点数</th><th>占比</th><th>平均下行</th><th>平均上行</th><th>下行峰值</th></tr></thead><tbody>"; function cells(a){ var pct=(a.n*100/total).toFixed(1); return "<td><span class='cbar' style='width:"+Math.round(a.n/maxn*80)+"px'></span>"+a.n+"</td><td>"+pct+"%</td><td>"+Math.round(a.dl/a.n)+" Mbps</td><td>"+Math.round(a.ul/a.n)+" Mbps</td><td>"+Math.round(a.maxdl)+" Mbps</td>"; } var pk=Object.keys(T).sort(function(a,b){return T[b].n-T[a].n;}); for(var i=0;i<pk.length;i++){ var pv=pk[i]; var P=T[pv]; var ck=Object.keys(P.cities); var nc=ck.length; var caret=nc?"<span class='ccare'>"+(CHINA_EXP["p"+i]?"▾":"▸")+"</span>":"<span class='ccare'></span>"; h+="<tr class='crow lv0' data-id='p"+i+"'><td>"+caret+"<span class='cname'>"+pv+"</span>"+(nc?"<span class='cbadge'>"+nc+"市</span>":"")+"</td>"+cells(P)+"</tr>"; if(CHINA_EXP["p"+i]){ ck.sort(function(a,b){return P.cities[b].n-P.cities[a].n;}); for(var j=0;j<ck.length;j++){ var cv=ck[j]; var C=P.cities[cv]; var dk=Object.keys(C.districts); var nd=dk.length; var caret2=nd?"<span class='ccare'>"+(CHINA_EXP["p"+i+"c"+j]?"▾":"▸")+"</span>":"<span class='ccare'></span>"; h+="<tr class='crow lv1' data-id='p"+i+"c"+j+"'><td>"+caret2+"<span class='cname'>"+cv+"</span></td>"+cells(C)+"</tr>"; if(CHINA_EXP["p"+i+"c"+j]){ dk.sort(function(a,b){return C.districts[b].n-C.districts[a].n;}); for(var m=0;m<dk.length;m++){ var dv=dk[m]; var D=C.districts[dv]; h+="<tr class='crow lv2'><td><span class='ccare'></span><span class='cname'>"+dv+"</span></td>"+cells(D)+"</tr>"; } } } } } h+="</tbody></table>"; el.innerHTML=h; }
+function chinaTblClick(e){ var tr=e.target.closest && e.target.closest("tr.crow"); if(!tr)return; var cc=tr.querySelector(".ccare"); if(!cc||!cc.textContent)return; var id=tr.getAttribute("data-id"); if(!id)return; CHINA_EXP[id]=!CHINA_EXP[id]; chinaRenderTable(); }
+function renderChina(pts){ if(pts&&pts.length){ lastPts=pts; } if(!chinaChart||!chinaReady)return; try{ chinaChart.setOption(chinaMapOption(),true); chinaRenderTable(); }catch(e){} }
+function chinaBuildLookup(mapName,geo){ try{ var lk={}; var fs=(geo&&geo.features)||[]; for(var i=0;i<fs.length;i++){ var pr=fs[i].properties; if(pr&&pr.name&&pr.adcode!=null)lk[String(pr.name)]=String(pr.adcode); } chinaFeat[mapName]=lk; }catch(e){ chinaFeat[mapName]={}; } }
+function chinaRenderBar(){
+  var bar=document.getElementById("chinabar"); if(!bar)return;
+  while(bar.firstChild)bar.removeChild(bar.firstChild);
+  if(!chinaStack||chinaStack.length<=1){ bar.style.display="none"; return; }
+  bar.style.display="flex";
+  function mk(label,idx,style){ var sp=document.createElement("span"); sp.setAttribute("data-i",String(idx)); sp.style.cssText=style; sp.textContent=label; bar.appendChild(sp); }
+  if(chinaStack.length>1){ mk("\u2039 返回上级",chinaStack.length-2,"cursor:pointer;color:#34e3a4;padding:2px 9px;border:1px solid rgba(52,227,164,0.45);border-radius:6px"); }
+  for(var i=0;i<chinaStack.length;i++){ var last=(i===chinaStack.length-1); mk(String(chinaStack[i].label||""),i,last?"cursor:pointer;padding:2px 7px;border-radius:6px;color:#e7eefb;background:rgba(120,170,255,0.16)":"cursor:pointer;padding:2px 7px;border-radius:6px;color:#9fb4d8"); if(i<chinaStack.length-1){ var sep=document.createElement("span"); sep.style.cssText="color:#4a5c78"; sep.textContent="/"; bar.appendChild(sep); } }
+}
+function chinaMapClick(params){ try{ if(!params||!params.name) return; if(chinaStack.length>=3) return; var lk=chinaFeat[chinaCurMap]||{}; var adcode=lk[params.name]; if(!adcode) return; chinaDrill(adcode, params.name, "drill_"+adcode); }catch(e){} }
+function chinaDrill(adcode,label,mapName){ try{ if(location.href.indexOf("localgeo")>=0){ loadLocalGeo(adcode,mapName); return; } }catch(e){} fetch("/vendor/geo/"+adcode+"_full.json").then(function(r){ if(!r.ok)throw 0; return r.json(); }).then(function(g){ try{ echarts.registerMap(mapName,g); }catch(e){ return; } chinaBuildLookup(mapName,g); chinaCurMap=mapName; chinaStack.push({map:mapName,label:label,adcode:String(adcode)}); try{ chinaChart.setOption(chinaFullOption()); chinaRenderBar(); chinaChart.resize(); }catch(e){} }).catch(function(er){ }); }
+function chinaGoToLevel(i){ if(i<0||i>=chinaStack.length)return; chinaStack.length=i+1; chinaCurMap=chinaStack[chinaStack.length-1].map; GZ.china.z=(chinaCurMap==="china")?1.0:1.1; GZ.china.target=GZ.china.z; try{ chinaChart.setOption(chinaFullOption()); chinaRenderBar(); }catch(e){} }
+function chinaWireBar(){ if(chinaBarWired)return; var bar=document.getElementById("chinabar"); if(!bar)return; chinaBarWired=true; try{ bar.addEventListener("click",function(e){ var t=e.target; while(t&&t!==bar){ var di=t.getAttribute?t.getAttribute("data-i"):null; if(di!=null){ var idx=parseInt(di,10); if(!isNaN(idx)&&idx<chinaStack.length-1){ chinaGoToLevel(idx); return; } } t=t.parentNode; } }); }catch(e){} }
+function initChina(){ if(typeof echarts==="undefined")return; paintChinaNight(); fetch("/vendor/china.json").then(function(r){return r.json();}).then(function(g){ echarts.registerMap("china",g); chinaBuildLookup("china",g); chinaBuildPolys(g); chinaStack=[{map:"china",label:"中国",adcode:"100000"}]; chinaCurMap="china"; chinaReady=true; try{ window.addEventListener("resize",function(){ if(chinaChart)chinaChart.resize(); }); }catch(e){} tryMountChina(); }).catch(function(){}); }
+function tryMountChina(){ if(!chinaReady)return; var el=document.getElementById("chinamap"); if(!el)return; if(el.clientWidth<10||el.clientHeight<10){ return; } if(!chinaChart){ chinaChart=echarts.init(el); } if(!chinaChart._clk){ chinaChart._clk=true; chinaChart.on("click", chinaMapClick); } try{ chinaChart.setOption(chinaMapOption(),true); chinaChart.resize(); chinaRenderTable(); chinaWireViewToggle(); chinaWireBar(); chinaRenderBar(); }catch(e){} }
+function chinaWireViewToggle(){ if(CHINA_VTW)return; CHINA_VTW=true; try{ var bm=document.getElementById("cViewMap"), bt=document.getElementById("cViewTbl"); if(bm)bm.onclick=function(){ var mp=document.getElementById("chinamap"), tb=document.getElementById("chinatbl"); if(mp)mp.style.display="block"; if(tb)tb.style.display="none"; bm.className="cbtn on"; if(bt)bt.className="cbtn"; if(chinaChart)chinaChart.resize(); }; if(bt)bt.onclick=function(){ var mp=document.getElementById("chinamap"), tb=document.getElementById("chinatbl"); if(mp)mp.style.display="none"; if(tb)tb.style.display="block"; bt.className="cbtn on"; if(bm)bm.className="cbtn"; }; }catch(e){} }
+function paintChinaNight(){
+  try{
+    var el=document.getElementById("chinamap"); if(!el)return;
+    el.style.backgroundColor="#050a14";
+    el.style.backgroundImage="radial-gradient(ellipse 72% 92% at 50% 44%, #16294a 0%, #0b1730 46%, #060d1c 78%, #03060e 100%)";
+    el.style.backgroundSize="cover"; el.style.backgroundPosition="center"; el.style.backgroundRepeat="no-repeat";
+  }catch(e){}
+}
+var flatChart=null, flatReady=false;
+var GZ={flat:{z:1.25,target:1.25,min:1,max:14,raf:0},china:{z:1.0,target:1.0,min:1,max:12,raf:0}};
+function flatZk(){return 1;}
+function chinaZk(){return 1;}
+function bindSmoothZoom(chart,el,key){ return; if(!chart||!el||el._zm)return; el._zm=true; el.addEventListener("wheel",function(e){ try{ var st=GZ[key]; e.preventDefault(); var f=e.deltaY<0?1.18:1/1.18; var nt=Math.max(st.min,Math.min(st.max,(st.target||st.z)*f)); try{ var r=el.getBoundingClientRect(); var mx=e.clientX-r.left, my=e.clientY-r.top; var P=chart.convertFromPixel({geoIndex:0},[mx,my]); var c0=chart.convertFromPixel({geoIndex:0},[r.width/2,r.height/2]); if(P&&c0&&isFinite(P[0])&&isFinite(P[1])&&isFinite(c0[0])&&isFinite(c0[1])){ st.anchor={px:P[0],py:P[1],cx:c0[0],cy:c0[1],z0:st.z}; } else { st.anchor=null; } }catch(err){ st.anchor=null; } st.target=nt; if(!st.raf){ st.raf=requestAnimationFrame(function(){easeZoom(chart,key);}); } }catch(err){} },{passive:false}); el.addEventListener("dblclick",function(){ try{ var st=GZ[key]; st.anchor=null; if(key==="flat"){ st.z=st.target=1.25; flatChart.setOption(flatFullOption(),true); } else { st.z=st.target=(chinaCurMap==="china")?1.0:1.1; chinaChart.setOption(chinaFullOption(),true); } }catch(e){} }); }
+function easeZoom(chart,key){ var st=GZ[key]; try{ st.z += (st.target-st.z)*0.22; if(Math.abs(st.target-st.z)<0.004)st.z=st.target; var upd={zoom:st.z}; if(st.anchor){ var a=st.anchor, k=a.z0/st.z; upd.center=[a.px-(a.px-a.cx)*k, a.py-(a.py-a.cy)*k]; } chart.setOption({geo:[upd]}); if(st.z!==st.target){ st.raf=requestAnimationFrame(function(){easeZoom(chart,key);}); } else { st.raf=0; try{ if(key==="flat"){renderFlat(lastPts);}else{renderChina(lastPts);} }catch(e){} } }catch(e){ st.raf=0; } }
+var WORLD_ENG_BY_ISO3={};var CC2ISO3={"AD":"AND","AE":"ARE","AF":"AFG","AG":"ATG","AI":"AIA","AL":"ALB","AM":"ARM","AO":"AGO","AQ":"ATA","AR":"ARG","AS":"ASM","AT":"AUT","AU":"AUS","AW":"ABW","AX":"ALA","AZ":"AZE","BA":"BIH","BB":"BRB","BD":"BGD","BE":"BEL","BF":"BFA","BG":"BGR","BH":"BHR","BI":"BDI","BJ":"BEN","BL":"BLM","BM":"BMU","BN":"BRN","BO":"BOL","BQ":"BES","BR":"BRA","BS":"BHS","BT":"BTN","BV":"BVT","BW":"BWA","BY":"BLR","BZ":"BLZ","CA":"CAN","CC":"CCK","CD":"COD","CF":"CAF","CG":"COG","CH":"CHE","CI":"CIV","CK":"COK","CL":"CHL","CM":"CMR","CN":"CHN","CO":"COL","CR":"CRI","CU":"CUB","CV":"CPV","CW":"CUW","CX":"CXR","CY":"CYP","CZ":"CZE","DE":"DEU","DJ":"DJI","DK":"DNK","DM":"DMA","DO":"DOM","DZ":"DZA","EC":"ECU","EE":"EST","EG":"EGY","EH":"ESH","ER":"ERI","ES":"ESP","ET":"ETH","FI":"FIN","FJ":"FJI","FK":"FLK","FM":"FSM","FO":"FRO","FR":"FRA","GA":"GAB","GB":"GBR","GD":"GRD","GE":"GEO","GF":"GUF","GG":"GGY","GH":"GHA","GI":"GIB","GL":"GRL","GM":"GMB","GN":"GIN","GP":"GLP","GQ":"GNQ","GR":"GRC","GS":"SGS","GT":"GTM","GU":"GUM","GW":"GNB","GY":"GUY","HK":"HKG","HM":"HMD","HN":"HND","HR":"HRV","HT":"HTI","HU":"HUN","ID":"IDN","IE":"IRL","IL":"ISR","IM":"IMN","IN":"IND","IO":"IOT","IQ":"IRQ","IR":"IRN","IS":"ISL","IT":"ITA","JE":"JEY","JM":"JAM","JO":"JOR","JP":"JPN","KE":"KEN","KG":"KGZ","KH":"KHM","KI":"KIR","KM":"COM","KN":"KNA","KP":"PRK","KR":"KOR","KW":"KWT","KY":"CYM","KZ":"KAZ","LA":"LAO","LB":"LBN","LC":"LCA","LI":"LIE","LK":"LKA","LR":"LBR","LS":"LSO","LT":"LTU","LU":"LUX","LV":"LVA","LY":"LBY","MA":"MAR","MC":"MCO","MD":"MDA","ME":"MNE","MF":"MAF","MG":"MDG","MH":"MHL","MK":"MKD","ML":"MLI","MM":"MMR","MN":"MNG","MO":"MAC","MP":"MNP","MQ":"MTQ","MR":"MRT","MS":"MSR","MT":"MLT","MU":"MUS","MV":"MDV","MW":"MWI","MX":"MEX","MY":"MYS","MZ":"MOZ","NA":"NAM","NC":"NCL","NE":"NER","NF":"NFK","NG":"NGA","NI":"NIC","NL":"NLD","NO":"NOR","NP":"NPL","NR":"NRU","NU":"NIU","NZ":"NZL","OM":"OMN","PA":"PAN","PE":"PER","PF":"PYF","PG":"PNG","PH":"PHL","PK":"PAK","PL":"POL","PM":"SPM","PN":"PCN","PR":"PRI","PS":"PSE","PT":"PRT","PW":"PLW","PY":"PRY","QA":"QAT","RE":"REU","RO":"ROU","RS":"SRB","RU":"RUS","RW":"RWA","SA":"SAU","SB":"SLB","SC":"SYC","SD":"SDN","SE":"SWE","SG":"SGP","SH":"SHN","SI":"SVN","SJ":"SJM","SK":"SVK","SL":"SLE","SM":"SMR","SN":"SEN","SO":"SOM","SR":"SUR","SS":"SSD","ST":"STP","SV":"SLV","SX":"SXM","SY":"SYR","SZ":"SWZ","TC":"TCA","TD":"TCD","TF":"ATF","TG":"TGO","TH":"THA","TJ":"TJK","TK":"TKL","TL":"TLS","TM":"TKM","TN":"TUN","TO":"TON","TR":"TUR","TT":"TTO","TV":"TUV","TW":"TWN","TZ":"TZA","UA":"UKR","UG":"UGA","UM":"UMI","US":"USA","UY":"URY","UZ":"UZB","VA":"VAT","VC":"VCT","VE":"VEN","VG":"VGB","VI":"VIR","VN":"VNM","VU":"VUT","WF":"WLF","WS":"WSM","YE":"YEM","YT":"MYT","ZA":"ZAF","ZM":"ZMB","ZW":"ZWE"};
+function flatAggByIso3(pts){ var agg={}; pts=pts||[]; for(var i=0;i<pts.length;i++){ var c=pts[i]; var iso3=CC2ISO3[c.cc]; if(!iso3)continue; var eng=WORLD_ENG_BY_ISO3[iso3]; if(!eng)continue; var a=agg[eng]||(agg[eng]={n:0,dl:0,ul:0,maxdl:0,maxul:0,cn:c.country||eng,cc:c.cc}); a.n++; a.dl+=(c.peakDl||0); a.ul+=(c.peakUl||0); if((c.peakDl||0)>a.maxdl)a.maxdl=c.peakDl||0; if((c.peakUl||0)>a.maxul)a.maxul=c.peakUl||0; } return agg; }
+function flatMapOption(){ var agg=flatAggByIso3(lastPts); var total=(lastPts&&lastPts.length)||1, maxn=1; Object.keys(agg).forEach(function(k){ if(agg[k].n>maxn)maxn=agg[k].n; }); var data=Object.keys(agg).map(function(k){ var a=agg[k]; return {name:k,value:a.n,_cn:a.cn,label:{show:true,formatter:a.cn+" "+a.n,color:"#dff3ff",fontSize:10,textShadowColor:"#000",textShadowBlur:3}}; }); return { backgroundColor:"transparent", animation:true, animationDuration:500, animationDurationUpdate:600, tooltip:{trigger:"item",confine:true,backgroundColor:"rgba(12,18,34,0.92)",borderColor:"rgba(120,170,255,0.35)",textStyle:{color:"#e7eefb",fontSize:12},formatter:function(p){ var a=agg[p.name]; if(!a) return (p.data&&p.data._cn)||p.name; return "<b>"+a.cn+"</b><br/>节点 "+a.n+"（"+(a.n*100/total).toFixed(1)+"%）<br/>平均下行 "+Math.round(a.dl/a.n)+" Mbps<br/>平均上行 "+Math.round(a.ul/a.n)+" Mbps<br/>下行峰值 "+Math.round(a.maxdl)+" · 上行峰值 "+Math.round(a.maxul)+" Mbps"; }}, visualMap:{show:true,type:"continuous",min:0,max:maxn,left:14,bottom:14,text:["多","少"],calculable:false,inRange:{color:["#12203a","#153a52","#1a605c","#28a878","#34e3a4"]},textStyle:{color:"#8aa4cc",fontSize:11},itemWidth:12,itemHeight:100}, series:[{ type:"map", map:"world", roam:false, zoom:1.18, aspectScale:1, nameProperty:"name", selectedMode:false, itemStyle:{areaColor:"rgba(26,46,82,0.60)",borderColor:"rgba(120,190,255,0.55)",borderWidth:0.6}, emphasis:{itemStyle:{areaColor:"rgba(52,227,164,0.30)"},label:{show:true}}, label:{show:false}, data:data }] }; }
+function flatCompute(pts){ pts=pts||[]; var data=[],lines=[]; for(var i=0;i<pts.length;i++){ var c=pts[i]; var nm=c.city||c.country||c.ip||("节点"+i); var d=dirOf(c); data.push({name:nm,ip:c.ip||"",dir:d,value:[c.lon,c.lat,(c.peakDl||c.peakUl||1)],itemStyle:{color:dirColor(d),shadowColor:dirColor(d)}}); if(!(c.lat===HUB.lat&&c.lon===HUB.lon)){ var co=(d==="ul")?[[c.lon,c.lat],[HUB.lon,HUB.lat]]:[[HUB.lon,HUB.lat],[c.lon,c.lat]]; lines.push({coords:co,lineStyle:{color:dirColor(d)}}); } } return {data:data,lines:lines}; }
+function flatSeries(pts){ var cc=flatCompute(pts); return [ {name:"节点",type:"effectScatter",coordinateSystem:"geo",zlevel:0,data:cc.data,symbolSize:function(v){var x=(v&&v[2])||0;return Math.min(24,Math.max(4,Math.min(12,3+Math.sqrt(x)*0.3))*flatZk());},rippleEffect:{brushType:"stroke",scale:2.2,period:4.5},itemStyle:{shadowBlur:9},label:{show:false}}, {name:"枢纽",type:"effectScatter",coordinateSystem:"geo",zlevel:0,symbolSize:Math.min(20,10*flatZk()),rippleEffect:{brushType:"stroke",scale:3.2,period:4},data:[{name:"杭州枢纽",value:[HUB.lon,HUB.lat],itemStyle:{color:"#f6c344",shadowColor:"#f6c344"}}],label:{show:true,position:"right",formatter:"杭州枢纽",color:"#f6c344",fontSize:11,textShadowColor:"#000",textShadowBlur:3}} ]; }
+function flatGeoCfg(){ return {map:"world",roam:false,zoom:1.2,aspectScale:1,itemStyle:{areaColor:"rgba(26,46,82,0.60)",borderColor:"rgba(120,190,255,0.85)",borderWidth:1.1,shadowColor:"rgba(0,0,0,0.55)",shadowBlur:12,shadowOffsetY:6},emphasis:{itemStyle:{areaColor:"rgba(52,227,164,0.28)"},label:{show:false}},select:{disabled:true},label:{show:false}}; }
+function flatFullOption(){ return flatMapOption(); }
+function tryMountFlat(){ if(!flatReady)return; var el=id("flatchart"); if(!el||el.clientWidth<10||el.clientHeight<10)return; if(!flatChart){ flatChart=echarts.init(el); } try{ flatChart.setOption(flatFullOption(),true); }catch(e){} try{ flatChart.resize(); }catch(e){} try{ bindSmoothZoom(flatChart,el,"flat"); }catch(e){} }
+function fMRender(){ if(flatChart){ try{ flatChart.resize(); }catch(e){} } else { tryMountFlat(); } }
+function initFlat(){ if(typeof echarts==="undefined")return; fetch("/vendor/world.json").then(function(r){return r.json();}).then(function(g){ try{ echarts.registerMap("world",g); }catch(e){return;} flatReady=true; try{ var _fs=(g&&g.features)||[]; for(var _q=0;_q<_fs.length;_q++){ var _id=_fs[_q].id; var _nm=_fs[_q].properties&&_fs[_q].properties.name; if(_id&&_nm)WORLD_ENG_BY_ISO3[_id]=_nm; } }catch(e){} try{ window.addEventListener("resize",function(){ if(flatChart)flatChart.resize(); }); }catch(e){} tryMountFlat(); }).catch(function(){}); }
+function renderFlat(pts){ if(pts&&pts.length)lastPts=pts; if(flatChart&&flatReady){ try{ flatChart.setOption(flatMapOption(),true); }catch(e){} } if(viewMode==="flat"){ try{ flatRenderTable(); }catch(e){} } }
+var viewMode="flat";
+function setView(v){
+  viewMode=v;
+  if(globe){try{globe.pauseAnimation(v!=="globe")}catch(e){}}
+  id("globe").style.display=(v==="globe")?"block":"none";
+  id("flatmap").style.display=(v==="flat")?"block":"none";
+  var cw=id("chinawrap"); if(cw) cw.style.display=(v==="china")?"block":"none";
+  if(v==="globe"){ gResize(); applyGlobeBase("globe"); }
+  if(v==="china"){ setTimeout(function(){ try{ tryMountChina(); }catch(e){} },80); }
+  if(v==="flat"){ try{wireFViewToggle();}catch(e){} try{flatRenderTable();}catch(e){} setTimeout(function(){ try{ tryMountFlat(); }catch(e){} },80); }
+  try{ id("vFlat").className="cbtn"+(v==="flat"?" on":""); id("vChina").className="cbtn"+(v==="china"?" on":""); syncDispBtns(); }catch(e){}
+}
+try{ id("vFlat").addEventListener("click",function(){ setView("flat"); }); id("vChina").addEventListener("click",function(){ setView("china"); }); }catch(e){}
+function setDisp(d){ try{ var tbl=(d==="tbl"); if(viewMode==="china"){ var mp=id("chinamap"),tb=id("chinatbl"); if(mp)mp.style.display=tbl?"none":"block"; if(tb)tb.style.display=tbl?"block":"none"; var bm=id("cViewMap"),bt=id("cViewTbl"); if(bm)bm.className="cbtn"+(tbl?"":" on"); if(bt)bt.className="cbtn"+(tbl?" on":""); if(!tbl&&typeof chinaChart!=="undefined"&&chinaChart){try{chinaChart.resize()}catch(e){}} } else { var mp=id("flatchart"),tb=id("flattbl"); if(mp)mp.style.display=tbl?"none":"block"; if(tb)tb.style.display=tbl?"block":"none"; var bm=id("fViewMap"),bt=id("fViewTbl"); if(bm)bm.className="cbtn"+(tbl?"":" on"); if(bt)bt.className="cbtn"+(tbl?" on":""); if(!tbl&&typeof flatChart!=="undefined"&&flatChart){try{flatChart.resize()}catch(e){}} } }catch(e){} syncDispBtns(); }
+function syncDispBtns(){ try{ var isTbl = viewMode==="china" ? (id("chinatbl")&&id("chinatbl").style.display==="block") : (id("flattbl")&&id("flattbl").style.display==="block"); id("dMap").className="cbtn"+(isTbl?"":" on"); id("dTbl").className="cbtn"+(isTbl?" on":""); }catch(e){} }
+try{ id("dMap").addEventListener("click",function(){ setDisp("map"); }); id("dTbl").addEventListener("click",function(){ setDisp("tbl"); }); }catch(e){}
+/* flat zoom handled by ECharts geo roam */
+id("lg").addEventListener("click",doLogin);
+id("pw").addEventListener("keydown",function(e){if(e.key==="Enter")doLogin()});
+id("un").addEventListener("keydown",function(e){if(e.key==="Enter")doLogin()});
+id("rf").addEventListener("click",function(e){e.preventDefault();load()});
+function gResize(){ if(globe){var el=id("globe"); try{globe.width(el.clientWidth).height(el.clientHeight);}catch(e){}} }
+id("gFull").addEventListener("click",function(){ var card=document.querySelector(".globe-card"); if(!document.fullscreenElement&&!document.webkitFullscreenElement){ if(card.requestFullscreen)card.requestFullscreen(); else if(card.webkitRequestFullscreen)card.webkitRequestFullscreen(); } else { if(document.exitFullscreen)document.exitFullscreen(); else if(document.webkitExitFullscreen)document.webkitExitFullscreen(); } });
+document.addEventListener("fullscreenchange",function(){ gResize(); setTimeout(gResize,160); setTimeout(gResize,460); try{ if(chinaChart)chinaChart.resize(); }catch(e){} try{ if(fMRender){try{fMRender();}catch(e){}} }catch(e){} });
+document.addEventListener("webkitfullscreenchange",function(){ gResize(); setTimeout(gResize,160); setTimeout(gResize,460); });
+initChina();
+initFlat();
+setTimeout(function(){try{setView("flat");}catch(e){}},50);
+try{ smWire(); }catch(e){}
+if(location.search.indexOf("demo")>=0){demo();}else{bindDash();load();_iv=setInterval(load,8000);floodPoll();setInterval(floodPoll,3000);var _fp=id("fpToggle");if(_fp)_fp.onclick=function(){var l=id("floodList");if(!l)return;var hid=l.style.display==="none";l.style.display=hid?"":"none";this.textContent=hid?"▾":"▸";};}
+</script>
+</body>
+</html>

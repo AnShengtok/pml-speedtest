@@ -1,0 +1,14 @@
+{
+  "download": [
+    "https://speed.cloudflare.com/__down?bytes=104857600",
+    "https://mirrors.163.com/ubuntu-releases/22.04/ubuntu-22.04.5-desktop-amd64.iso",
+    "https://proof.ovh.net/files/100Mb.dat",
+    "http://speedtest.tele2.net/100MB.zip"
+  ],
+  "upload": [
+    "https://speed.cloudflare.com/__up",
+    "https://httpbin.org/post",
+    "https://postman-echo.com/post",
+    "https://echo.apifox.com/post"
+  ]
+}

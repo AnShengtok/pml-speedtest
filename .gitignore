@@ -1,0 +1,20 @@
+# build artifacts / binaries
+*.exe
+*.apk
+*.syso
+client/build/
+*.log
+# local backups
+*.bak
+*.bak_*
+*.bak*
+# secrets / local state — never commit
+*.pem
+*.key
+id_rsa
+MEMORY.md
+geoip.json
+.env
+# OS / editor
+Thumbs.db
+.DS_Store

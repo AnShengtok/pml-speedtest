@@ -1,0 +1,15 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "主窗口能力：创建窗口 + 启动 sidecar + 允许访问本地引擎",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "core:webview:allow-create-webview-window",
+    "core:window:allow-close",
+    "shell:allow-execute"
+  ],
+  "remote": {
+    "urls": ["http://127.0.0.1:8799/*"]
+  }
+}

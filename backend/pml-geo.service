@@ -1,0 +1,12 @@
+[Unit]
+Description=PML geo/ul backend
+After=network.target
+
+[Service]
+WorkingDirectory=/opt/pml-geo
+ExecStart=/opt/pml-geo/pml-geo
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

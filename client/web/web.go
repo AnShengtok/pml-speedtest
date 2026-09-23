@@ -32,7 +32,7 @@ func init() {
 // 上报默认目标（可被环境变量覆盖）。
 const (
 	DefaultReportURL = "http://203.0.113.10/report"
-	DefaultSiteKey   = "pml-web-2026"
+	DefaultSiteKey   = "pml-web-your-own-key"
 )
 
 var (
